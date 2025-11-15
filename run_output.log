@@ -36,7 +36,7 @@ Initial makespan (no refinement): 5.950000
 
 Running DIDP on problems/small/mixed_4.yaml...
 Optimal makespan: 11.310000
-Solve time: 0.04s
+Solve time: 0.03s
 Improvement: -5.360000 (-90.08%)
 
 ============================================================
@@ -72,7 +72,9 @@ Processing: medium/dag_7.yaml
 Initial makespan (no refinement): 8.300025
 
 Running DIDP on problems/medium/dag_7.yaml...
-Timeout expired for problems/medium/dag_7.yaml
+Optimal makespan: 15.180522
+Solve time: 121.75s
+Improvement: -6.880497 (-82.90%)
 
 ============================================================
 Processing: medium/mixed_8.yaml
@@ -80,7 +82,6 @@ Processing: medium/mixed_8.yaml
 Initial makespan (no refinement): 10.421967
 
 Running DIDP on problems/medium/mixed_8.yaml...
-Timeout expired for problems/medium/mixed_8.yaml
 
 ============================================================
 Processing: medium/parallel_6.yaml
@@ -88,7 +89,6 @@ Processing: medium/parallel_6.yaml
 Initial makespan (no refinement): 6.000000
 
 Running DIDP on problems/medium/parallel_6.yaml...
-Timeout expired for problems/medium/parallel_6.yaml
 
 ============================================================
 Processing: medium/sparse_10.yaml
@@ -119,7 +119,7 @@ Processing: large/parallel_15.yaml
 Initial makespan (no refinement): 6.000000
 
 Running DIDP on problems/large/parallel_15.yaml...
-Timeout expired for problems/large/parallel_15.yaml
+Warning: Could not extract makespan from output
 
 ============================================================
 Generating report...

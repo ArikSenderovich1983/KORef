@@ -150,8 +150,9 @@ def generate_markdown_table(results):
     """
     Generate a markdown table with the results.
     """
-    md = "# DIDP KORef Results\n\n"
+    md = "# DIDP KORef Results Comparison\n\n"
     md += f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+    md += "This report compares the initial expected makespan (no refinement) vs. optimal expected makespan (with DIDP refinement) for all problem instances.\n\n"
     md += "## Summary\n\n"
     md += f"Total problems: {len(results)}\n"
     
@@ -173,8 +174,8 @@ def generate_markdown_table(results):
             continue
         
         md += f"\n### {category.capitalize()} Problems\n\n"
-        md += "| Problem | Initial Makespan | Optimal Makespan | Improvement | Improvement % | Solve Time (s) |\n"
-        md += "|---------|-----------------|------------------|-------------|---------------|----------------|\n"
+        md += "| Problem | Initial Makespan | Optimal Makespan | Improvement | Improvement % | Runtime (s) |\n"
+        md += "|---------|-----------------|------------------|-------------|---------------|-------------|\n"
         
         for result in categories[category]:
             problem = result['problem']
@@ -185,18 +186,18 @@ def generate_markdown_table(results):
             if initial is not None and optimal is not None:
                 improvement = initial - optimal
                 improvement_pct = (improvement / initial) * 100
-                md += f"| {problem} | {initial:.6f} | {optimal:.6f} | {improvement:.6f} | {improvement_pct:.2f}% | {solve_time:.2f} |\n"
+                md += f"| {problem} | {initial:.6f} | {optimal:.6f} | {improvement:.6f} | {improvement_pct:.2f}% | {solve_time:.3f} |\n"
             elif initial is not None and optimal is None:
-                md += f"| {problem} | {initial:.6f} | *timeout/error* | - | - | {solve_time:.2f} |\n"
+                md += f"| {problem} | {initial:.6f} | *timeout/error* | - | - | {solve_time:.3f} |\n"
             elif initial is None and optimal is not None:
-                md += f"| {problem} | *error* | {optimal:.6f} | - | - | {solve_time:.2f} |\n"
+                md += f"| {problem} | *error* | {optimal:.6f} | - | - | {solve_time:.3f} |\n"
             else:
-                md += f"| {problem} | *error* | *timeout/error* | - | - | {solve_time:.2f} |\n"
+                md += f"| {problem} | *error* | *timeout/error* | - | - | {solve_time:.3f} |\n"
     
     # Add overall table
-    md += "\n## All Results (Summary Table)\n\n"
-    md += "| Category | Problem | Initial Makespan | Optimal Makespan | Improvement | Improvement % | Solve Time (s) |\n"
-    md += "|----------|---------|-----------------|------------------|-------------|---------------|----------------|\n"
+    md += "\n## All Results (Complete Comparison Table)\n\n"
+    md += "| Category | Problem | Initial Makespan | Optimal Makespan | Improvement | Improvement % | Runtime (s) |\n"
+    md += "|----------|---------|-----------------|------------------|-------------|---------------|-------------|\n"
     
     for result in results:
         category = result['category']
@@ -208,13 +209,13 @@ def generate_markdown_table(results):
         if initial is not None and optimal is not None:
             improvement = initial - optimal
             improvement_pct = (improvement / initial) * 100
-            md += f"| {category} | {problem} | {initial:.6f} | {optimal:.6f} | {improvement:.6f} | {improvement_pct:.2f}% | {solve_time:.2f} |\n"
+            md += f"| {category} | {problem} | {initial:.6f} | {optimal:.6f} | {improvement:.6f} | {improvement_pct:.2f}% | {solve_time:.3f} |\n"
         elif initial is not None and optimal is None:
-            md += f"| {category} | {problem} | {initial:.6f} | *timeout/error* | - | - | {solve_time:.2f} |\n"
+            md += f"| {category} | {problem} | {initial:.6f} | *timeout/error* | - | - | {solve_time:.3f} |\n"
         elif initial is None and optimal is not None:
-            md += f"| {category} | {problem} | *error* | {optimal:.6f} | - | - | {solve_time:.2f} |\n"
+            md += f"| {category} | {problem} | *error* | {optimal:.6f} | - | - | {solve_time:.3f} |\n"
         else:
-            md += f"| {category} | {problem} | *error* | *timeout/error* | - | - | {solve_time:.2f} |\n"
+            md += f"| {category} | {problem} | *error* | *timeout/error* | - | - | {solve_time:.3f} |\n"
     
     return md
 
