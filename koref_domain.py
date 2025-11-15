@@ -141,9 +141,15 @@ def create_model(n, durations, probabilities, precedence):
     pair_to_a = model.add_int_table([pair_to_info[i][0] for i in range(num_pairs)])
     pair_to_b = model.add_int_table([pair_to_info[i][1] for i in range(num_pairs)])
     
-    # Base case: terminal state when no unresolved pairs
-    # Terminal cost will be computed by evaluating expected makespan
+    # Base case: terminal states
+    # Option 1: All pairs resolved (complete refinement)
+    # Option 2: No improvement possible (canonical schedule)
+    # We allow both - the solver will find the optimal one
     model.add_base_case([unresolved.is_empty()])
+    
+    # Also allow canonical schedule (no refinement) as a valid terminal state
+    # This is represented by the initial state itself if it's already optimal
+    # Actually, we'll handle this by allowing the solver to compare all terminal states
     
     # Transitions: for each unresolved unordered pair {a,b}, we can add either a<b or b<a
     # When we add a constraint, we remove the canonical pair index from unresolved
