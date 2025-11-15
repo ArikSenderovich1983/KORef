@@ -81,6 +81,19 @@ def solve_manually(instance_file):
     results = []
     activities = list(range(n))
     
+    # First, add the canonical schedule (empty refinement) for comparison
+    schedule_canonical = compute_earliest_start_schedule(activities, initial_precedence, durations)
+    makespan_canonical = compute_expected_makespan(
+        activities, schedule_canonical, durations, probabilities
+    )
+    results.append({
+        'refinement': initial_precedence.copy(),
+        'added_constraints': [],  # No constraints added
+        'expected_makespan': makespan_canonical,
+        'schedule': schedule_canonical,
+        'is_canonical': True,
+    })
+    
     for i, (refined_prec, is_valid) in enumerate(refinements):
         if not is_valid:
             continue
@@ -104,6 +117,7 @@ def solve_manually(instance_file):
             'added_constraints': added,
             'expected_makespan': expected_makespan,
             'schedule': schedule,
+            'is_canonical': False,
         })
     
     # Sort by expected makespan
@@ -116,6 +130,10 @@ def solve_manually(instance_file):
     
     for i, result in enumerate(results):
         print(f"\nRefinement #{i+1}:")
+        if result.get('is_canonical', False):
+            print(f"  Type: CANONICAL (no refinement)")
+        else:
+            print(f"  Type: Refinement")
         print(f"  Added constraints: {result['added_constraints']}")
         print(f"  Schedule: {result['schedule']}")
         print(f"  Expected makespan: {result['expected_makespan']:.6f}")
