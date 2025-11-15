@@ -101,6 +101,13 @@ def check_acyclic(precedence, n):
         if closure.get((a, a), False):
             return False
     
+    # Check for bidirectional edges (a -> b and b -> a indicates a cycle)
+    for a in range(n):
+        for b in range(n):
+            if a != b:
+                if closure.get((a, b), False) and closure.get((b, a), False):
+                    return False
+    
     return True
 
 
