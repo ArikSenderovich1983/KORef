@@ -72,7 +72,7 @@ def create_model(n, durations, probabilities, precedence):
         pair_to_info: Dict mapping pair index -> (a, b)
         initial_precedence: Original precedence relation
     """
-    model = dp.Model()
+    model = dp.Model(float_cost=True)
     
     # Object types
     activity = model.add_object_type(number=n)
