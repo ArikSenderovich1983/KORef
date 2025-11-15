@@ -1,5 +1,30 @@
 # Changelog
 
+## Version 0.2 (2024-11-15)
+
+### Optimality Verification and Documentation
+
+**New Features:**
+- ✅ Manual verification script (`verify_optimality.py`) for exhaustive enumeration
+- ✅ Pen-and-paper Bellman equation proof (`PEN_AND_PAPER_VERIFICATION.md`)
+- ✅ Verification summary comparing manual vs DIDP results (`VERIFICATION_SUMMARY.md`)
+
+**Bug Fixes:**
+- ✅ Fixed `check_acyclic()`: Now properly detects bidirectional cycles (a→b and b→a)
+  - Previously only checked for self-loops
+  - Now correctly identifies all cyclic refinements
+
+**Verification Results:**
+- Verified optimality for `mixed_4` problem instance
+- Optimal expected makespan: 11.31
+- All 8 valid refinements evaluated and compared
+- Bellman equation optimality condition confirmed
+
+**Files Added:**
+- `verify_optimality.py` - Exhaustive enumeration and verification script
+- `PEN_AND_PAPER_VERIFICATION.md` - Detailed mathematical proof
+- `VERIFICATION_SUMMARY.md` - Summary and comparison document
+
 ## Version 0.1 (2024-11-15)
 
 ### Initial Release
