@@ -1,42 +1,42 @@
-# KORef Problem Instance
 name: varied_durations_5
 description: 5 activities with highly varied durations
 category: mixed
 difficulty: medium
-
 metadata:
   n_activities: 5
   n_precedence: 1
   n_unresolved_pairs: 9
-  graph_structure: "mixed"
-  duration_distribution: "highly_varied"
-  ko_probability_distribution: "low_risk"
-
+  graph_structure: mixed
+  duration_distribution: highly_varied
+  ko_probability_distribution: low_risk
+  canonical_expected_makespan: 15.0
+  canonical_schedule:
+    '0': 0.0
+    '1': 0.0
+    '3': 0.0
+    '4': 0.0
+    '2': 1.0
 activities:
-  - id: 0
-    name: "Quick_Task"
-    duration: 1.0
-    ko_probability: 0.05
-    
-  - id: 1
-    name: "Medium_Task"
-    duration: 5.0
-    ko_probability: 0.1
-    
-  - id: 2
-    name: "Long_Task"
-    duration: 12.0
-    ko_probability: 0.08
-    
-  - id: 3
-    name: "Short_Task"
-    duration: 2.0
-    ko_probability: 0.12
-    
-  - id: 4
-    name: "Very_Long_Task"
-    duration: 15.0
-    ko_probability: 0.06
-
+- id: 0
+  name: Quick_Task
+  duration: 1.0
+  ko_probability: 0.05
+- id: 1
+  name: Medium_Task
+  duration: 5.0
+  ko_probability: 0.1
+- id: 2
+  name: Long_Task
+  duration: 12.0
+  ko_probability: 0.08
+- id: 3
+  name: Short_Task
+  duration: 2.0
+  ko_probability: 0.12
+- id: 4
+  name: Very_Long_Task
+  duration: 15.0
+  ko_probability: 0.06
 precedence:
-  - [0, 2]  # Quick_Task must precede Long_Task
+- - 0
+  - 2

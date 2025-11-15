@@ -1,91 +1,90 @@
-# KORef Problem Instance
 name: parallel_15
 description: 15 activities in parallel (very large search space)
 category: parallel
 difficulty: extreme
-
 metadata:
   n_activities: 15
   n_precedence: 0
   n_unresolved_pairs: 105
-  graph_structure: "parallel"
-  duration_distribution: "varied"
-  ko_probability_distribution: "medium_risk"
-
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: medium_risk
+  canonical_expected_makespan: 6.0
+  canonical_schedule:
+    '0': 0.0
+    '1': 0.0
+    '2': 0.0
+    '3': 0.0
+    '4': 0.0
+    '5': 0.0
+    '6': 0.0
+    '7': 0.0
+    '8': 0.0
+    '9': 0.0
+    '10': 0.0
+    '11': 0.0
+    '12': 0.0
+    '13': 0.0
+    '14': 0.0
 activities:
-  - id: 0
-    name: "P1"
-    duration: 4.0
-    ko_probability: 0.18
-    
-  - id: 1
-    name: "P2"
-    duration: 3.0
-    ko_probability: 0.2
-    
-  - id: 2
-    name: "P3"
-    duration: 5.0
-    ko_probability: 0.16
-    
-  - id: 3
-    name: "P4"
-    duration: 2.0
-    ko_probability: 0.22
-    
-  - id: 4
-    name: "P5"
-    duration: 4.5
-    ko_probability: 0.19
-    
-  - id: 5
-    name: "P6"
-    duration: 3.5
-    ko_probability: 0.17
-    
-  - id: 6
-    name: "P7"
-    duration: 6.0
-    ko_probability: 0.15
-    
-  - id: 7
-    name: "P8"
-    duration: 2.5
-    ko_probability: 0.21
-    
-  - id: 8
-    name: "P9"
-    duration: 4.0
-    ko_probability: 0.18
-    
-  - id: 9
-    name: "P10"
-    duration: 3.0
-    ko_probability: 0.2
-    
-  - id: 10
-    name: "P11"
-    duration: 5.5
-    ko_probability: 0.16
-    
-  - id: 11
-    name: "P12"
-    duration: 2.0
-    ko_probability: 0.23
-    
-  - id: 12
-    name: "P13"
-    duration: 4.0
-    ko_probability: 0.19
-    
-  - id: 13
-    name: "P14"
-    duration: 3.5
-    ko_probability: 0.17
-    
-  - id: 14
-    name: "P15"
-    duration: 6.0
-    ko_probability: 0.14
-
+- id: 0
+  name: P1
+  duration: 4.0
+  ko_probability: 0.18
+- id: 1
+  name: P2
+  duration: 3.0
+  ko_probability: 0.2
+- id: 2
+  name: P3
+  duration: 5.0
+  ko_probability: 0.16
+- id: 3
+  name: P4
+  duration: 2.0
+  ko_probability: 0.22
+- id: 4
+  name: P5
+  duration: 4.5
+  ko_probability: 0.19
+- id: 5
+  name: P6
+  duration: 3.5
+  ko_probability: 0.17
+- id: 6
+  name: P7
+  duration: 6.0
+  ko_probability: 0.15
+- id: 7
+  name: P8
+  duration: 2.5
+  ko_probability: 0.21
+- id: 8
+  name: P9
+  duration: 4.0
+  ko_probability: 0.18
+- id: 9
+  name: P10
+  duration: 3.0
+  ko_probability: 0.2
+- id: 10
+  name: P11
+  duration: 5.5
+  ko_probability: 0.16
+- id: 11
+  name: P12
+  duration: 2.0
+  ko_probability: 0.23
+- id: 12
+  name: P13
+  duration: 4.0
+  ko_probability: 0.19
+- id: 13
+  name: P14
+  duration: 3.5
+  ko_probability: 0.17
+- id: 14
+  name: P15
+  duration: 6.0
+  ko_probability: 0.14
 precedence: []
