@@ -58,9 +58,45 @@ Initial state S₀:
 - Precedence: {0→1, 0→2}
 - Unresolved: {(0,3), (1,2), (1,3), (2,3)}
 
-### All Valid Refinements (8 total)
+### All Valid Refinements (9 total: 1 canonical + 8 complete)
 
-After filtering out cyclic refinements, we have 8 valid terminal states:
+We evaluate:
+1. **Canonical schedule** (empty refinement - no constraints added)
+2. **8 complete refinements** (all pairs resolved)
+
+After filtering out cyclic refinements, we have 9 valid terminal states:
+
+#### Refinement 0: Canonical Schedule (Empty Refinement)
+
+**Precedence:** {0→1, 0→2} (no additional constraints)
+
+**Schedule:**
+- Activity 0: start=0.0, finish=2.0
+- Activity 3: start=0.0, finish=5.0 (parallel with 0)
+- Activity 1: start=2.0, finish=6.0 (after 0)
+- Activity 2: start=2.0, finish=5.0 (after 0, parallel with 1)
+
+**Overlap Analysis:**
+- Activities 0 and 3 overlap: [0.0, 2.0) ∩ [0.0, 5.0)
+- Activities 1 and 2 overlap: [2.0, 6.0) ∩ [2.0, 5.0)
+- Activities 1 and 3 overlap: [2.0, 6.0) ∩ [0.0, 5.0)
+- Activities 2 and 3 overlap: [2.0, 5.0) ∩ [0.0, 5.0)
+
+**Abort Times:**
+- τ(0) = max{f(0), f(3)} = max{2.0, 5.0} = 5.0
+- τ(1) = max{f(1), f(2), f(3)} = max{6.0, 5.0, 5.0} = 6.0
+- τ(2) = max{f(1), f(2), f(3)} = max{6.0, 5.0, 5.0} = 6.0
+- τ(3) = max{f(0), f(1), f(2), f(3)} = max{2.0, 6.0, 5.0, 5.0} = 6.0
+
+**Buckets:**
+- Bucket 1 (t=5.0): {0}, Q₁ = 0.95, P₀=1.0, P₁=0.95
+- Bucket 2 (t=6.0): {1, 2, 3}, Q₂ = 0.80×0.85×0.90 = 0.612, P₂=0.5814
+
+**Expected Makespan:**
+E[M] = 5.0×1.0×(1-0.95) + 6.0×0.95×(1-0.612) + 6.0×0.5814
+     = 5.0×0.05 + 6.0×0.95×0.388 + 3.4884
+     = 0.25 + 2.2116 + 3.4884
+     = **5.95**
 
 #### Refinement 1: {0→3, 1→2, 1→3, 2→3}
 **Schedule:**
@@ -157,31 +193,37 @@ The optimal solution satisfies:
 V(S₀) = min_{all terminal states S_terminal} [ExpectedMakespan(S_terminal)]
 ```
 
-From our enumeration:
-- V(S₀) = min{11.31, 11.31, 11.652, 11.7945, 12.222, 12.222, 12.272, 12.272}
-- V(S₀) = **11.31**
+From our enumeration (including canonical):
+- V(S₀) = min{5.95, 11.31, 11.31, 11.652, 11.7945, 12.222, 12.222, 12.272, 12.272}
+- V(S₀) = **5.95**
 
 ### Verification
 
-The optimal refinement is:
-- **Constraints:** {0→3, 1→2, 1→3, 2→3}
-- **Expected Makespan:** 11.31
+The optimal solution is:
+- **Type:** Canonical schedule (empty refinement - no constraints added)
+- **Precedence:** {0→1, 0→2} (original only)
+- **Expected Makespan:** 5.95
 
-All other refinements have expected makespan ≥ 11.31, confirming optimality.
+All complete refinements have expected makespan ≥ 11.31, which is worse than canonical.
 
 ### Backward Induction Verification
 
 We can verify using backward induction from terminal states:
 
 1. **Terminal states:** V(S_terminal) = ExpectedMakespan(S_terminal) ✓
-2. **Non-terminal states:** V(S) = min[V(S + constraint)] ✓
-3. **Initial state:** V(S₀) = min over all paths = 11.31 ✓
+2. **Non-terminal states:** V(S) = min[V(S + constraint), V(S_canonical)] ✓
+3. **Initial state:** V(S₀) = min over all paths = 5.95 (canonical) ✓
 
 ## Conclusion
 
 The Bellman equation is satisfied:
 - All terminal states have V(S) = ExpectedMakespan(S)
 - All non-terminal states satisfy V(S) = min[V(S')] over transitions
-- The optimal value V(S₀) = 11.31 is achieved by refinement {0→3, 1→2, 1→3, 2→3}
+- The optimal value V(S₀) = 5.95 is achieved by the canonical schedule (empty refinement)
 
-**The KORef DIDP solver should find this same optimal solution.**
+**Key Insight:** For this problem instance, the canonical schedule (with parallelism) is optimal. Adding constraints to create complete refinements increases expected makespan because:
+- Complete refinements force sequential execution (makespan 14.0)
+- Canonical schedule allows parallelism (makespan 6.0)
+- The benefit of parallelism outweighs the KO risk from overlaps
+
+**The KORef DIDP solver should find this same optimal solution (canonical schedule).**
