@@ -16,9 +16,16 @@ from itertools import product
 
 def enumerate_all_refinements(n, initial_precedence):
     """
-    Enumerate all possible refinements of the initial precedence.
+    Enumerate ALL possible refinements of the initial precedence.
+    This includes:
+    - Canonical (0 constraints added)
+    - Partial refinements (1, 2, ..., k-1 constraints added)
+    - Complete refinements (all k constraints added)
+    
     Returns list of (refined_precedence, is_valid) tuples.
     """
+    from itertools import product, combinations
+    
     # Find unresolved pairs
     closure = compute_transitive_closure(initial_precedence, n)
     unresolved = []
@@ -33,27 +40,34 @@ def enumerate_all_refinements(n, initial_precedence):
                         unresolved.append((a, b))
     
     print(f"Unresolved pairs: {unresolved}")
-    print(f"Total refinements to evaluate: {2**len(unresolved)}")
+    print(f"Total possible refinements: 2^{len(unresolved)} = {2**len(unresolved)}")
+    print(f"  (including canonical, partial, and complete refinements)")
     
     refinements = []
     
-    # For each unresolved pair, we can add either (a,b) or (b,a)
-    # Generate all combinations
-    for choices in product([0, 1], repeat=len(unresolved)):
-        refined = initial_precedence.copy()
-        
-        # Add constraints based on choices
-        for i, (a, b) in enumerate(unresolved):
-            if choices[i] == 0:
-                refined[(a, b)] = True
-            else:
-                refined[(b, a)] = True
-        
-        # Check if valid (acyclic)
-        if check_acyclic(refined, n):
-            refinements.append((refined, True))
-        else:
-            refinements.append((refined, False))
+    # Enumerate ALL subsets of unresolved pairs
+    # For each subset size from 0 to len(unresolved)
+    for num_pairs in range(len(unresolved) + 1):
+        # For each combination of num_pairs pairs to resolve
+        for pairs_to_resolve in combinations(unresolved, num_pairs):
+            # For each orientation of these pairs (2^num_pairs choices)
+            for orientations in product([0, 1], repeat=num_pairs):
+                refined = initial_precedence.copy()
+                
+                # Add constraints based on choices
+                for i, (a, b) in enumerate(pairs_to_resolve):
+                    if orientations[i] == 0:
+                        refined[(a, b)] = True
+                    else:
+                        refined[(b, a)] = True
+                
+                # Check if valid (acyclic)
+                if check_acyclic(refined, n):
+                    refinements.append((refined, True))
+                else:
+                    refinements.append((refined, False))
+    
+    print(f"Total refinements generated: {len(refinements)}")
     
     return refinements, unresolved
 
@@ -80,23 +94,17 @@ def solve_manually(instance_file):
     # Evaluate each refinement
     results = []
     activities = list(range(n))
-    
-    # First, add the canonical schedule (empty refinement) for comparison
-    schedule_canonical = compute_earliest_start_schedule(activities, initial_precedence, durations)
-    makespan_canonical = compute_expected_makespan(
-        activities, schedule_canonical, durations, probabilities
-    )
-    results.append({
-        'refinement': initial_precedence.copy(),
-        'added_constraints': [],  # No constraints added
-        'expected_makespan': makespan_canonical,
-        'schedule': schedule_canonical,
-        'is_canonical': True,
-    })
+    seen_precedence = set()  # Track seen precedence relations to avoid duplicates
     
     for i, (refined_prec, is_valid) in enumerate(refinements):
         if not is_valid:
             continue
+        
+        # Create a canonical representation of precedence to detect duplicates
+        prec_tuple = tuple(sorted(refined_prec.items()))
+        if prec_tuple in seen_precedence:
+            continue
+        seen_precedence.add(prec_tuple)
         
         # Compute schedule
         schedule = compute_earliest_start_schedule(activities, refined_prec, durations)
@@ -112,12 +120,15 @@ def solve_manually(instance_file):
             if (a, b) not in initial_precedence:
                 added.append((a, b))
         
+        # Check if this is canonical (no constraints added)
+        is_canonical = len(added) == 0
+        
         results.append({
             'refinement': refined_prec,
             'added_constraints': added,
             'expected_makespan': expected_makespan,
             'schedule': schedule,
-            'is_canonical': False,
+            'is_canonical': is_canonical,
         })
     
     # Sort by expected makespan
