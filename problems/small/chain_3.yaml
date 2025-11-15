@@ -1,0 +1,32 @@
+# KORef Problem Instance
+name: chain_3
+description: Simple 3-activity chain with low KO probabilities
+category: chain
+difficulty: easy
+
+metadata:
+  n_activities: 3
+  n_precedence: 1
+  n_unresolved_pairs: 2
+  graph_structure: "chain"
+  duration_distribution: "varied"
+  ko_probability_distribution: "low_risk"
+
+activities:
+  - id: 0
+    name: "Setup"
+    duration: 5.0
+    ko_probability: 0.1
+    
+  - id: 1
+    name: "Process"
+    duration: 3.0
+    ko_probability: 0.2
+    
+  - id: 2
+    name: "Finish"
+    duration: 4.0
+    ko_probability: 0.15
+
+precedence:
+  - [0, 1]  # Setup must precede Process

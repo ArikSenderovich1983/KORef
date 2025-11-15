@@ -1,0 +1,87 @@
+# KORef Problem Instance
+name: chain_12
+description: 12-activity linear chain
+category: chain
+difficulty: very_hard
+
+metadata:
+  n_activities: 12
+  n_precedence: 11
+  n_unresolved_pairs: 0
+  graph_structure: "chain"
+  duration_distribution: "uniform"
+  ko_probability_distribution: "medium_risk"
+
+activities:
+  - id: 0
+    name: "Step_01"
+    duration: 3.0
+    ko_probability: 0.15
+    
+  - id: 1
+    name: "Step_02"
+    duration: 3.0
+    ko_probability: 0.16
+    
+  - id: 2
+    name: "Step_03"
+    duration: 3.0
+    ko_probability: 0.14
+    
+  - id: 3
+    name: "Step_04"
+    duration: 3.0
+    ko_probability: 0.18
+    
+  - id: 4
+    name: "Step_05"
+    duration: 3.0
+    ko_probability: 0.17
+    
+  - id: 5
+    name: "Step_06"
+    duration: 3.0
+    ko_probability: 0.15
+    
+  - id: 6
+    name: "Step_07"
+    duration: 3.0
+    ko_probability: 0.19
+    
+  - id: 7
+    name: "Step_08"
+    duration: 3.0
+    ko_probability: 0.16
+    
+  - id: 8
+    name: "Step_09"
+    duration: 3.0
+    ko_probability: 0.14
+    
+  - id: 9
+    name: "Step_10"
+    duration: 3.0
+    ko_probability: 0.17
+    
+  - id: 10
+    name: "Step_11"
+    duration: 3.0
+    ko_probability: 0.15
+    
+  - id: 11
+    name: "Step_12"
+    duration: 3.0
+    ko_probability: 0.16
+
+precedence:
+  - [0, 1]
+  - [1, 2]
+  - [2, 3]
+  - [3, 4]
+  - [4, 5]
+  - [5, 6]
+  - [6, 7]
+  - [7, 8]
+  - [8, 9]
+  - [9, 10]
+  - [10, 11]

@@ -1,0 +1,31 @@
+# KORef Problem Instance
+name: parallel_3
+description: 3 activities in parallel (no initial precedence)
+category: parallel
+difficulty: easy
+
+metadata:
+  n_activities: 3
+  n_precedence: 0
+  n_unresolved_pairs: 3
+  graph_structure: "parallel"
+  duration_distribution: "varied"
+  ko_probability_distribution: "medium_risk"
+
+activities:
+  - id: 0
+    name: "Task_A"
+    duration: 5.0
+    ko_probability: 0.15
+    
+  - id: 1
+    name: "Task_B"
+    duration: 3.0
+    ko_probability: 0.2
+    
+  - id: 2
+    name: "Task_C"
+    duration: 4.0
+    ko_probability: 0.18
+
+precedence: []  # No initial constraints - fully parallel

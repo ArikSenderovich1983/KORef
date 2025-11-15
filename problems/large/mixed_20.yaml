@@ -1,0 +1,121 @@
+# KORef Problem Instance
+name: mixed_20
+description: 20 activities with mixed structure
+category: mixed
+difficulty: extreme
+
+metadata:
+  n_activities: 20
+  n_precedence: 5
+  n_unresolved_pairs: 185
+  graph_structure: "mixed"
+  duration_distribution: "varied"
+  ko_probability_distribution: "mixed"
+
+activities:
+  - id: 0
+    name: "Start"
+    duration: 1.0
+    ko_probability: 0.02
+    
+  - id: 1
+    name: "Task_1"
+    duration: 3.0
+    ko_probability: 0.1
+    
+  - id: 2
+    name: "Task_2"
+    duration: 4.0
+    ko_probability: 0.12
+    
+  - id: 3
+    name: "Task_3"
+    duration: 2.0
+    ko_probability: 0.08
+    
+  - id: 4
+    name: "Task_4"
+    duration: 5.0
+    ko_probability: 0.15
+    
+  - id: 5
+    name: "Task_5"
+    duration: 3.5
+    ko_probability: 0.11
+    
+  - id: 6
+    name: "Task_6"
+    duration: 4.5
+    ko_probability: 0.13
+    
+  - id: 7
+    name: "Task_7"
+    duration: 2.5
+    ko_probability: 0.09
+    
+  - id: 8
+    name: "Task_8"
+    duration: 6.0
+    ko_probability: 0.16
+    
+  - id: 9
+    name: "Task_9"
+    duration: 3.0
+    ko_probability: 0.1
+    
+  - id: 10
+    name: "Task_10"
+    duration: 4.0
+    ko_probability: 0.12
+    
+  - id: 11
+    name: "Task_11"
+    duration: 5.5
+    ko_probability: 0.14
+    
+  - id: 12
+    name: "Task_12"
+    duration: 2.0
+    ko_probability: 0.07
+    
+  - id: 13
+    name: "Task_13"
+    duration: 4.5
+    ko_probability: 0.15
+    
+  - id: 14
+    name: "Task_14"
+    duration: 3.5
+    ko_probability: 0.11
+    
+  - id: 15
+    name: "Task_15"
+    duration: 6.0
+    ko_probability: 0.17
+    
+  - id: 16
+    name: "Task_16"
+    duration: 2.5
+    ko_probability: 0.08
+    
+  - id: 17
+    name: "Task_17"
+    duration: 5.0
+    ko_probability: 0.13
+    
+  - id: 18
+    name: "Task_18"
+    duration: 4.0
+    ko_probability: 0.12
+    
+  - id: 19
+    name: "End"
+    duration: 1.0
+    ko_probability: 0.03
+
+precedence:
+  - [0, 1]   # Start -> Task_1
+  - [0, 2]   # Start -> Task_2
+  - [8, 19]  # Task_8 -> End
+  - [15, 19] # Task_15 -> End
+  - [4, 8]   # Task_4 -> Task_8

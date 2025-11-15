@@ -1,0 +1,39 @@
+# KORef Problem Instance
+name: chain_4
+description: 4-activity linear chain
+category: chain
+difficulty: easy
+
+metadata:
+  n_activities: 4
+  n_precedence: 3
+  n_unresolved_pairs: 0
+  graph_structure: "chain"
+  duration_distribution: "uniform"
+  ko_probability_distribution: "low_risk"
+
+activities:
+  - id: 0
+    name: "Step_1"
+    duration: 3.0
+    ko_probability: 0.1
+    
+  - id: 1
+    name: "Step_2"
+    duration: 3.0
+    ko_probability: 0.12
+    
+  - id: 2
+    name: "Step_3"
+    duration: 3.0
+    ko_probability: 0.08
+    
+  - id: 3
+    name: "Step_4"
+    duration: 3.0
+    ko_probability: 0.15
+
+precedence:
+  - [0, 1]
+  - [1, 2]
+  - [2, 3]

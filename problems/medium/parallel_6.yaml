@@ -1,0 +1,46 @@
+# KORef Problem Instance
+name: parallel_6
+description: 6 activities in parallel
+category: parallel
+difficulty: hard
+
+metadata:
+  n_activities: 6
+  n_precedence: 0
+  n_unresolved_pairs: 15
+  graph_structure: "parallel"
+  duration_distribution: "varied"
+  ko_probability_distribution: "medium_risk"
+
+activities:
+  - id: 0
+    name: "Worker_1"
+    duration: 5.0
+    ko_probability: 0.2
+    
+  - id: 1
+    name: "Worker_2"
+    duration: 3.0
+    ko_probability: 0.18
+    
+  - id: 2
+    name: "Worker_3"
+    duration: 4.0
+    ko_probability: 0.22
+    
+  - id: 3
+    name: "Worker_4"
+    duration: 6.0
+    ko_probability: 0.15
+    
+  - id: 4
+    name: "Worker_5"
+    duration: 2.0
+    ko_probability: 0.25
+    
+  - id: 5
+    name: "Worker_6"
+    duration: 4.5
+    ko_probability: 0.19
+
+precedence: []

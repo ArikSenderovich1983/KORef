@@ -1,0 +1,51 @@
+# KORef Problem Instance
+name: chain_6
+description: 6-activity linear chain
+category: chain
+difficulty: medium
+
+metadata:
+  n_activities: 6
+  n_precedence: 5
+  n_unresolved_pairs: 0
+  graph_structure: "chain"
+  duration_distribution: "uniform"
+  ko_probability_distribution: "medium_risk"
+
+activities:
+  - id: 0
+    name: "Stage_1"
+    duration: 4.0
+    ko_probability: 0.15
+    
+  - id: 1
+    name: "Stage_2"
+    duration: 4.0
+    ko_probability: 0.18
+    
+  - id: 2
+    name: "Stage_3"
+    duration: 4.0
+    ko_probability: 0.12
+    
+  - id: 3
+    name: "Stage_4"
+    duration: 4.0
+    ko_probability: 0.2
+    
+  - id: 4
+    name: "Stage_5"
+    duration: 4.0
+    ko_probability: 0.16
+    
+  - id: 5
+    name: "Stage_6"
+    duration: 4.0
+    ko_probability: 0.14
+
+precedence:
+  - [0, 1]
+  - [1, 2]
+  - [2, 3]
+  - [3, 4]
+  - [4, 5]
