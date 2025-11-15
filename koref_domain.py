@@ -142,14 +142,19 @@ def create_model(n, durations, probabilities, precedence):
     pair_to_b = model.add_int_table([pair_to_info[i][1] for i in range(num_pairs)])
     
     # Base case: terminal states
-    # Option 1: All pairs resolved (complete refinement)
-    # Option 2: No improvement possible (canonical schedule)
-    # We allow both - the solver will find the optimal one
+    # Terminal states are when we have a valid refinement (can be partial or complete)
+    # We allow:
+    # 1. Complete refinement: all pairs resolved (unresolved.is_empty())
+    # 2. Canonical schedule: initial state (no constraints added) - this is also valid
+    # The solver will find the optimal one by comparing expected makespans
+    
+    # For complete refinements:
     model.add_base_case([unresolved.is_empty()])
     
-    # Also allow canonical schedule (no refinement) as a valid terminal state
-    # This is represented by the initial state itself if it's already optimal
-    # Actually, we'll handle this by allowing the solver to compare all terminal states
+    # Note: The canonical schedule (initial state) is implicitly included
+    # because transitions are optional - we can stop at any state
+    # But DIDP requires explicit base cases, so we need to handle canonical separately
+    # Actually, we'll evaluate canonical in the solver by checking the initial state
     
     # Transitions: for each unresolved unordered pair {a,b}, we can add either a<b or b<a
     # When we add a constraint, we remove the canonical pair index from unresolved
@@ -259,20 +264,31 @@ def solve_optimal_exhaustive(
 ):
     """
     Exhaustively explore all terminal states and find the one with minimum expected makespan.
-    This guarantees optimality by evaluating exact expected makespan for every complete refinement.
+    This guarantees optimality by evaluating exact expected makespan for every refinement,
+    including the canonical schedule (empty refinement).
     """
     import time
+    from koref_utils import compute_earliest_start_schedule, compute_expected_makespan
+    
     start_time = time.time()
     
-    # Use BreadthFirstSearch to explore all states systematically
+    # First, evaluate the canonical schedule (initial state, no refinement)
+    activities = list(range(n))
+    schedule_canonical = compute_earliest_start_schedule(activities, initial_precedence, durations)
+    makespan_canonical = compute_expected_makespan(activities, schedule_canonical, durations, probabilities)
+    
+    print("Evaluating canonical schedule (no refinement)...")
+    print(f"  Canonical expected makespan: {makespan_canonical:.6f}")
+    
+    best_cost = makespan_canonical
+    best_precedence = initial_precedence.copy()
+    best_transitions = []  # Empty - no transitions (canonical)
+    terminal_count = 1  # Count canonical as first terminal state
+    
+    # Use BreadthFirstSearch to explore all complete refinements
     solver = dp.BreadthFirstSearch(model, time_limit=time_limit, quiet=False)
     
-    best_cost = float('inf')
-    best_precedence = None
-    best_transitions = None
-    terminal_count = 0
-    
-    print("Exploring all terminal states to find optimal solution...")
+    print("\nExploring all complete refinements...")
     
     # Explore all states - BreadthFirstSearch will find all terminal states
     is_terminated = False
@@ -284,32 +300,15 @@ def solve_optimal_exhaustive(
             
         solution, is_terminated = solver.search_next()
         
-        # Check if this solution represents a terminal state
-        # Terminal states satisfy the base case: unresolved.is_empty()
-        # Solutions with transitions represent paths to terminal states
+        # Check if this solution represents a terminal state (complete refinement)
         if not solution.is_infeasible and solution.transitions:
-            # Count how many precedence constraints were added
-            # For a complete refinement, we should have added constraints for all
-            # unresolved pairs. The number of transitions should equal the number
-            # of unresolved pairs we started with.
-            
             # Extract precedence and verify it's acyclic
             refined_precedence = extract_precedence_from_solution(
                 solution.transitions, n, initial_precedence
             )
             
             if refined_precedence is not None:
-                # Verify this is a complete refinement by checking we have enough constraints
-                # For n activities with k unresolved pairs initially, we need k transitions
-                num_unresolved_init = len([(a,b) for a in range(n) for b in range(a+1, n)
-                                          if not initial_precedence.get((a,b), False) 
-                                          and not initial_precedence.get((b,a), False)])
-                
-                # A complete refinement should have resolved all pairs
-                # Check: number of added constraints should equal number of unresolved pairs
-                num_added = len(solution.transitions)
-                
-                # Compute exact expected makespan for this terminal state
+                # Compute exact expected makespan for this complete refinement
                 expected_makespan = compute_terminal_cost(
                     refined_precedence, n, durations, probabilities
                 )
@@ -322,15 +321,22 @@ def solve_optimal_exhaustive(
                     best_cost = expected_makespan
                     best_precedence = refined_precedence
                     best_transitions = solution.transitions
-                    print(f"  New best: expected_makespan = {best_cost:.6f} (from {num_added} constraints)")
+                    num_added = len(solution.transitions)
+                    print(f"  New best: expected_makespan = {best_cost:.6f} (complete refinement with {num_added} constraints)")
     
-    print(f"\nExplored {terminal_count} terminal states")
+    print(f"\nExplored {terminal_count} terminal states (including canonical)")
     
     if best_precedence is None:
         print("No valid terminal states found")
         return None, None, None, False, True
     
-    print(f"Optimal expected makespan: {best_cost:.6f}")
+    # Check if canonical is optimal
+    if best_cost == makespan_canonical and len(best_transitions) == 0:
+        print(f"Optimal solution: Canonical schedule (no refinement needed)")
+        print(f"Optimal expected makespan: {best_cost:.6f}")
+    else:
+        print(f"Optimal solution: Complete refinement")
+        print(f"Optimal expected makespan: {best_cost:.6f}")
     
     return (
         best_precedence,
