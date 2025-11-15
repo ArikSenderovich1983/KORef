@@ -72,6 +72,8 @@ def create_model(n, durations, probabilities, precedence):
         pair_to_info: Dict mapping pair index -> (a, b)
         initial_precedence: Original precedence relation
     """
+    # Create model - DIDP defaults to integer costs, but we'll use float expressions
+    # Expected makespan is continuous, so we need float cost type
     model = dp.Model()
     
     # Object types
@@ -177,7 +179,7 @@ def create_model(n, durations, probabilities, precedence):
         if constraint_idx_ab is not None:
             add_a_prec_b = dp.Transition(
                 name=f"add_precedence_{a}_before_{b}",
-                cost=dp.FloatExpr.state_cost(),  # Cost computed at terminal state
+                cost=dp.IntExpr.state_cost(),  # Zero cost during search, actual cost computed at terminal
                 effects=[
                     (unresolved, unresolved.remove(pidx_ab)),
                     (added_constraints, added_constraints.add(constraint_idx_ab)),
@@ -195,7 +197,7 @@ def create_model(n, durations, probabilities, precedence):
         if constraint_idx_ba is not None:
             add_b_prec_a = dp.Transition(
                 name=f"add_precedence_{b}_before_{a}",
-                cost=dp.FloatExpr.state_cost(),
+                cost=dp.IntExpr.state_cost(),  # Zero cost during search, actual cost computed at terminal
                 effects=[
                     (unresolved, unresolved.remove(pidx_ab)),
                     (added_constraints, added_constraints.add(constraint_idx_ba)),

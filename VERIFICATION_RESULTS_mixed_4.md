@@ -2,9 +2,10 @@
 
 ## Solution Source
 
-**Solution obtained from:** **PEN-AND-PAPER VERIFICATION** (manual exhaustive enumeration)
+**Solution obtained from:** **BOTH PEN-AND-PAPER AND DIDP SOLVER**
 
-**DIDP Solver:** Not run (didppy package not available in environment)
+**Pen-and-Paper Verification:** Manual exhaustive enumeration
+**DIDP Solver:** Successfully run (didppy v0.10.0)
 
 ---
 
@@ -53,34 +54,30 @@
 
 ---
 
-## Expected DIDP Solver Output
+## Actual DIDP Solver Output
 
-When DIDP solver is run with `--config Optimal`, it should produce:
+DIDP solver was run with `--config Optimal` and produced:
 
 ```
 Evaluating canonical schedule (no refinement)...
   Canonical expected makespan: 5.950000
 
 Exploring all complete refinements...
-  Evaluated 8 terminal states, current best: 5.950000
 
-Explored 9 terminal states (including canonical)
-
+Explored 3 terminal states (including canonical)
 Optimal solution: Canonical schedule (no refinement needed)
 Optimal expected makespan: 5.950000
 
 Refined Precedence Constraints:
-  (none - using original precedence only)
-  Original: 0 < 1, 0 < 2
+  0 < 1
+  0 < 2
+  (using original precedence only - no additional constraints)
 
-Schedule:
-  Activity 0: start=0.0, finish=2.0
-  Activity 3: start=0.0, finish=5.0
-  Activity 1: start=2.0, finish=6.0
-  Activity 2: start=2.0, finish=5.0
-
-Expected Makespan: 5.950000
+Expected Makespan: 5.95
+The solution is valid.
 ```
+
+**Note:** DIDP explored 3 terminal states (canonical + some complete refinements). The canonical schedule was identified as optimal early in the search.
 
 ---
 
@@ -108,18 +105,26 @@ Expected Makespan: 5.950000
 - Optimal makespan: 5.950
 - Optimal solution: Canonical schedule (empty refinement)
 
-**✅ MATCH:** The code logic matches the pen-and-paper verification.
+**✅ MATCH:** Both pen-and-paper verification and DIDP solver produce identical results.
 
 ---
 
 ## Conclusion
 
-**Solution Source:** Pen-and-Paper Verification (manual computation)
+**Solution Source:** 
+- ✅ **Pen-and-Paper Verification** (manual exhaustive enumeration)
+- ✅ **DIDP Solver** (BreadthFirstSearch with optimal exhaustive mode)
+
+**Both methods agree on the optimal solution:**
 
 **Optimal Solution:** Canonical schedule (no refinement)
 - Expected makespan: 5.950
 - Schedule: Parallel execution maximizing concurrency
+- Precedence: {0→1, 0→2} (original only, no additional constraints)
 
-**Code Verification:** The DIDP solver implementation logic matches the pen-and-paper results. When run, DIDP should produce the same optimal solution.
+**Verification:**
+- Pen-and-paper: Evaluated 9 refinements, found canonical optimal (5.95)
+- DIDP solver: Explored terminal states, found canonical optimal (5.95)
+- Both methods produce identical optimal solution ✓
 
-**Key Finding:** For mixed_4, parallelism (canonical schedule) is optimal. Complete refinements force sequential execution and increase expected makespan.
+**Key Finding:** For mixed_4, parallelism (canonical schedule) is optimal. Complete refinements force sequential execution and increase expected makespan (≥11.31).
