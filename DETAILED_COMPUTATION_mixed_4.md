@@ -307,14 +307,15 @@ E[M] = 2.0×0.05 + 5.0×0.95×0.15 + 10.0×0.8075×0.10 + 14.0×0.72675×0.20 + 
 
 **Bellman Optimality:**
 ```
-V(S₀) = min{V(S_terminal₁), V(S_terminal₂), ..., V(S_terminal₈)}
-       = min{11.31, 11.31, 11.652, 11.795, 12.222, 12.222, 12.272, 12.272}
-       = 11.31
+V(S₀) = min{V(S_canonical), V(S_terminal₁), V(S_terminal₂), ..., V(S_terminal₈)}
+       = min{5.95, 11.31, 11.31, 11.652, 11.795, 12.222, 12.222, 12.272, 12.272}
+       = 5.95
 ```
 
-**Optimal Refinement:**
-- Constraints: {0→3, 1→2, 1→3, 2→3}
-- Expected Makespan: **11.31**
+**Optimal Solution:**
+- Type: Canonical schedule (empty refinement)
+- Constraints Added: [] (none - using original precedence only)
+- Expected Makespan: **5.95**
 
 ---
 
