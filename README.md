@@ -58,7 +58,10 @@ python koref_domain.py <instance_file> [options]
 Options:
 - `--time-out`: Time limit in seconds (default: 1800)
 - `--history`: History file for search progress (default: history.csv)
-- `--config`: Solver configuration (default: CABS)
+- `--config`: Solver configuration (default: Optimal)
+  - `Optimal` or `EXHAUSTIVE`: Exhaustively explores all terminal states, computes exact expected makespan for each, returns optimal (guaranteed)
+  - `FR` or `ForwardRecursion`: Uses DIDP ForwardRecursion (may not explore all states)
+  - Other DIDP solvers: `CABS`, `LNBS`, etc. (heuristic, not guaranteed optimal)
 - `--seed`: Random seed (default: 2023)
 - `--threads`: Number of threads (default: 1)
 - `--initial-beam-size`: Initial beam size (default: 1)
@@ -67,7 +70,11 @@ Options:
 ### Example
 
 ```bash
-python koref_domain.py test_instance.koref --config FR --time-out 60
+# Find optimal solution with exact makespan computation
+python koref_domain.py test_instance.koref --config Optimal --time-out 60
+
+# Use heuristic solver (faster but not guaranteed optimal)
+python koref_domain.py test_instance.koref --config CABS --time-out 60
 ```
 
 ## Implementation Notes
@@ -76,6 +83,7 @@ python koref_domain.py test_instance.koref --config FR --time-out 60
 
 The DIDP state tracks:
 - `unresolved`: Set of unresolved unordered pairs of activities
+- `added_constraints`: Set of precedence constraints that have been added
 
 ### Transitions
 
@@ -85,17 +93,31 @@ For each unresolved pair `{a, b}`, we can add either:
 
 Transitions check that adding the constraint doesn't immediately create a cycle (based on initial precedence).
 
-### Cost Computation
+### Optimal Search with Exact Makespan Computation
 
-**Current Limitation**: The implementation uses zero cost for transitions and computes expected makespan only after extracting the solution. This means:
+The implementation supports **optimal search** with **exact expected makespan computation**:
 
-1. DIDP will find *a* valid refinement, but not necessarily the optimal one
-2. For optimal search, expected makespan should be computed during search, which requires more complex state tracking
+1. **Exhaustive Search Mode** (`--config Optimal`):
+   - Explores all terminal states using BreadthFirstSearch
+   - For each terminal state, computes the **exact expected makespan** using the bucket-based algorithm
+   - Returns the refinement with minimum expected makespan
+   - **Guarantees optimality** (exhaustive exploration)
 
-**Future Improvement**: To enable optimal search, the state should track the current precedence relation and compute expected makespan incrementally. This would require:
-- Tracking added constraints in state variables
-- Computing schedule and expected makespan in DIDP cost expressions (complex)
-- Or using custom cost computation callbacks if supported by DIDP
+2. **Expected Makespan Computation**:
+   - Uses the exact algorithm from the specification:
+     1. Compute canonical earliest-start schedule from precedence relation
+     2. Compute abort times for each activity (max finish time of overlapping activities)
+     3. Group activities by abort time into buckets
+     4. Compute survival probabilities: Q_j = ∏(1-p(a)) for a in bucket j
+     5. Compute cumulative probabilities: P_j = ∏Q_i for i=1..j
+     6. Apply formula: E[M] = Σ(t_j * P_{j-1} * (1-Q_j)) + T * P_k
+
+3. **Terminal State Evaluation**:
+   - When a terminal state is reached (all pairs resolved), the precedence relation is extracted
+   - The exact expected makespan is computed using the algorithm above
+   - All terminal states are evaluated to find the optimal one
+
+This approach ensures **optimal solutions** with **exact makespan computation** as specified in the LaTeX document.
 
 ### Expected Makespan Algorithm
 

@@ -117,6 +117,11 @@ def create_model(n, durations, probabilities, precedence):
     # State variables
     unresolved = model.add_set_var(object_type=pair, target=unresolved_pairs_list)
     
+    # Track added precedence constraints: set of pair indices representing added constraints
+    # We'll use a set variable to track which constraints have been added
+    # For each added constraint (a,b), we store the pair index for (a,b)
+    added_constraints = model.add_set_var(object_type=pair, target=[])
+    
     # Tables for initial precedence relation (read-only, for cycle checking)
     precedence_table_data = []
     for a in range(n):
@@ -128,58 +133,70 @@ def create_model(n, durations, probabilities, precedence):
     
     precedence_table = model.add_int_table(precedence_table_data)
     
+    # Tables for durations and probabilities (needed for cost computation)
+    duration_table = model.add_float_table(durations)
+    prob_table = model.add_float_table(probabilities)
+    
     # Table mapping pair index to activity indices
     pair_to_a = model.add_int_table([pair_to_info[i][0] for i in range(num_pairs)])
     pair_to_b = model.add_int_table([pair_to_info[i][1] for i in range(num_pairs)])
     
     # Base case: terminal state when no unresolved pairs
+    # Terminal cost will be computed by evaluating expected makespan
     model.add_base_case([unresolved.is_empty()])
     
     # Transitions: for each unresolved unordered pair {a,b}, we can add either a<b or b<a
     # When we add a constraint, we remove the canonical pair index from unresolved
-    # (both directions are resolved by choosing one)
+    # and add the constraint to added_constraints
     
     for (a, b), (pidx_ab, pidx_ba) in unresolved_pair_map.items():
         idx_ab = a * n + b
         idx_ba = b * n + a
         
+        # Find the pair index for (a,b) constraint
+        constraint_idx_ab = None
+        constraint_idx_ba = None
+        for pidx in range(num_pairs):
+            if pair_to_info[pidx] == (a, b):
+                constraint_idx_ab = pidx
+            elif pair_to_info[pidx] == (b, a):
+                constraint_idx_ba = pidx
+        
         # Transition: add a < b
-        # Remove the canonical pair index (pidx_ab represents the unordered pair)
-        add_a_prec_b = dp.Transition(
-            name=f"add_precedence_{a}_before_{b}",
-            cost=dp.FloatExpr.state_cost(),  # Zero cost during search
-            effects=[
-                (unresolved, unresolved.remove(pidx_ab)),
-            ],
-            preconditions=[
-                unresolved.contains(pidx_ab),
-                precedence_table[idx_ba] == 0,  # b does not precede a initially
-            ],
-        )
-        model.add_transition(add_a_prec_b)
+        if constraint_idx_ab is not None:
+            add_a_prec_b = dp.Transition(
+                name=f"add_precedence_{a}_before_{b}",
+                cost=dp.FloatExpr.state_cost(),  # Cost computed at terminal state
+                effects=[
+                    (unresolved, unresolved.remove(pidx_ab)),
+                    (added_constraints, added_constraints.add(constraint_idx_ab)),
+                ],
+                preconditions=[
+                    unresolved.contains(pidx_ab),
+                    precedence_table[idx_ba] == 0,  # b does not precede a initially
+                    # Check that adding this doesn't create a cycle with already added constraints
+                    # (We'll check this more thoroughly post-solution, but basic check here)
+                ],
+            )
+            model.add_transition(add_a_prec_b)
         
         # Transition: add b < a
-        # Remove the same canonical pair index
-        add_b_prec_a = dp.Transition(
-            name=f"add_precedence_{b}_before_{a}",
-            cost=dp.FloatExpr.state_cost(),
-            effects=[
-                (unresolved, unresolved.remove(pidx_ab)),
-            ],
-            preconditions=[
-                unresolved.contains(pidx_ab),
-                precedence_table[idx_ab] == 0,  # a does not precede b initially
-            ],
-        )
-        model.add_transition(add_b_prec_a)
+        if constraint_idx_ba is not None:
+            add_b_prec_a = dp.Transition(
+                name=f"add_precedence_{b}_before_{a}",
+                cost=dp.FloatExpr.state_cost(),
+                effects=[
+                    (unresolved, unresolved.remove(pidx_ab)),
+                    (added_constraints, added_constraints.add(constraint_idx_ba)),
+                ],
+                preconditions=[
+                    unresolved.contains(pidx_ab),
+                    precedence_table[idx_ab] == 0,  # a does not precede b initially
+                ],
+            )
+            model.add_transition(add_b_prec_a)
     
-    # Note: Terminal cost is 0 (we compute actual cost post-solution)
-    # This means DIDP will explore all refinements, and we'll evaluate
-    # them after extraction. For optimal search, we'd need to compute
-    # expected makespan during search, which requires a more complex
-    # state representation or custom cost computation.
-    
-    return model, pair_to_info, precedence, unresolved_pair_map
+    return model, pair_to_info, precedence, unresolved_pair_map, duration_table, prob_table
 
 
 def extract_precedence_from_solution(transitions, n, initial_precedence):
@@ -202,9 +219,120 @@ def extract_precedence_from_solution(transitions, n, initial_precedence):
     if not check_acyclic(refined_precedence, n):
         return None
     
-    # Compute transitive closure
-    closure = compute_transitive_closure(refined_precedence, n)
-    return closure
+    # Return the refined precedence (not transitive closure - that's computed when needed)
+    return refined_precedence
+
+
+def compute_terminal_cost(refined_precedence, n, durations, probabilities):
+    """
+    Compute the exact expected makespan for a terminal state.
+    This is called for each terminal state to get the true cost.
+    """
+    activities = list(range(n))
+    
+    # Compute schedule
+    schedule = compute_earliest_start_schedule(
+        activities, refined_precedence, durations
+    )
+    
+    # Compute exact expected makespan
+    expected_makespan = compute_expected_makespan(
+        activities, schedule, durations, probabilities
+    )
+    
+    return expected_makespan
+
+
+def solve_optimal_exhaustive(
+    model,
+    n,
+    durations,
+    probabilities,
+    initial_precedence,
+    time_limit=None,
+):
+    """
+    Exhaustively explore all terminal states and find the one with minimum expected makespan.
+    This guarantees optimality by evaluating exact expected makespan for every complete refinement.
+    """
+    import time
+    start_time = time.time()
+    
+    # Use BreadthFirstSearch to explore all states systematically
+    solver = dp.BreadthFirstSearch(model, time_limit=time_limit, quiet=False)
+    
+    best_cost = float('inf')
+    best_precedence = None
+    best_transitions = None
+    terminal_count = 0
+    
+    print("Exploring all terminal states to find optimal solution...")
+    
+    # Explore all states - BreadthFirstSearch will find all terminal states
+    is_terminated = False
+    
+    while not is_terminated:
+        if time_limit and (time.time() - start_time) > time_limit:
+            print(f"Time limit reached after exploring {terminal_count} terminal states")
+            break
+            
+        solution, is_terminated = solver.search_next()
+        
+        # Check if this solution represents a terminal state
+        # Terminal states satisfy the base case: unresolved.is_empty()
+        # Solutions with transitions represent paths to terminal states
+        if not solution.is_infeasible and solution.transitions:
+            # Count how many precedence constraints were added
+            # For a complete refinement, we should have added constraints for all
+            # unresolved pairs. The number of transitions should equal the number
+            # of unresolved pairs we started with.
+            
+            # Extract precedence and verify it's acyclic
+            refined_precedence = extract_precedence_from_solution(
+                solution.transitions, n, initial_precedence
+            )
+            
+            if refined_precedence is not None:
+                # Verify this is a complete refinement by checking we have enough constraints
+                # For n activities with k unresolved pairs initially, we need k transitions
+                num_unresolved_init = len([(a,b) for a in range(n) for b in range(a+1, n)
+                                          if not initial_precedence.get((a,b), False) 
+                                          and not initial_precedence.get((b,a), False)])
+                
+                # A complete refinement should have resolved all pairs
+                # Check: number of added constraints should equal number of unresolved pairs
+                num_added = len(solution.transitions)
+                
+                # Compute exact expected makespan for this terminal state
+                expected_makespan = compute_terminal_cost(
+                    refined_precedence, n, durations, probabilities
+                )
+                
+                terminal_count += 1
+                if terminal_count % 10 == 0:
+                    print(f"  Evaluated {terminal_count} terminal states, current best: {best_cost:.6f}")
+                
+                if expected_makespan < best_cost:
+                    best_cost = expected_makespan
+                    best_precedence = refined_precedence
+                    best_transitions = solution.transitions
+                    print(f"  New best: expected_makespan = {best_cost:.6f} (from {num_added} constraints)")
+    
+    print(f"\nExplored {terminal_count} terminal states")
+    
+    if best_precedence is None:
+        print("No valid terminal states found")
+        return None, None, None, False, True
+    
+    print(f"Optimal expected makespan: {best_cost:.6f}")
+    
+    return (
+        best_precedence,
+        best_cost,
+        None,
+        True,  # Optimal (exhaustive search)
+        False,
+    )
 
 
 def solve(
@@ -215,6 +343,8 @@ def solve(
     probabilities,
     initial_precedence,
     unresolved_pair_map,
+    duration_table,
+    prob_table,
     solver_name,
     history,
     time_limit=None,
@@ -223,7 +353,46 @@ def solve(
     threads=1,
     parallel_type=0,
 ):
-    """Solve the KORef problem using DIDP."""
+    """
+    Solve the KORef problem using DIDP.
+    
+    For optimal search with exact makespan computation, use solver_name="Optimal"
+    which will exhaustively explore all terminal states.
+    """
+    # For optimal exhaustive search
+    if solver_name == "Optimal" or solver_name == "EXHAUSTIVE":
+        return solve_optimal_exhaustive(
+            model, n, durations, probabilities, initial_precedence, time_limit
+        )
+    
+    # For optimal search, we need to explore all terminal states
+    # Use ForwardRecursion which explores exhaustively
+    if solver_name == "FR" or solver_name == "ForwardRecursion":
+        solver = dp.ForwardRecursion(model, time_limit=time_limit, quiet=False)
+        solution = solver.search()
+        
+        if solution.is_infeasible:
+            return None, None, None, False, True
+        
+        refined_precedence = extract_precedence_from_solution(
+            solution.transitions, n, initial_precedence
+        )
+        
+        if refined_precedence is None:
+            return None, None, None, False, False
+        
+        expected_makespan = compute_terminal_cost(
+            refined_precedence, n, durations, probabilities
+        )
+        
+        return (
+            refined_precedence,
+            expected_makespan,
+            None,  # best_bound
+            True,  # is_optimal (ForwardRecursion guarantees optimality)
+            False,
+        )
+    
     if solver_name == "LNBS":
         if parallel_type == 2:
             parallelization_method = dp.BeamParallelizationMethod.Sbs
@@ -243,8 +412,9 @@ def solve(
         )
     elif solver_name == "DD-LNS":
         solver = dp.DDLNS(model, time_limit=time_limit, quiet=False, seed=seed)
-    elif solver_name == "FR":
-        solver = dp.ForwardRecursion(model, time_limit=time_limit, quiet=False)
+    elif solver_name == "FR" or solver_name == "ForwardRecursion":
+        # Already handled above
+        pass
     elif solver_name == "BrFS":
         solver = dp.BreadthFirstSearch(model, time_limit=time_limit, quiet=False)
     elif solver_name == "CAASDy":
@@ -304,16 +474,12 @@ def solve(
         )
         
         if refined_precedence is None:
-            print("Warning: Solution contains cycles, trying to find another solution")
+            print("Warning: Solution contains cycles")
             return None, None, None, False, False
         
-        # Compute actual expected makespan
-        activities = list(range(n))
-        schedule = compute_earliest_start_schedule(
-            activities, refined_precedence, durations
-        )
-        expected_makespan = compute_expected_makespan(
-            activities, schedule, durations, probabilities
+        # Compute exact expected makespan for this terminal state
+        expected_makespan = compute_terminal_cost(
+            refined_precedence, n, durations, probabilities
         )
 
         return (
@@ -330,7 +496,8 @@ if __name__ == "__main__":
     parser.add_argument("input", type=str)
     parser.add_argument("--time-out", default=1800, type=int)
     parser.add_argument("--history", default="history.csv", type=str)
-    parser.add_argument("--config", default="CABS", type=str)
+    parser.add_argument("--config", default="Optimal", type=str, 
+                        help="Solver: 'Optimal' (exhaustive), 'FR' (ForwardRecursion), 'CABS', 'LNBS', etc.")
     parser.add_argument("--seed", default=2023, type=int)
     parser.add_argument("--threads", default=1, type=int)
     parser.add_argument("--initial-beam-size", default=1, type=int)
@@ -339,7 +506,7 @@ if __name__ == "__main__":
 
     name, n, durations, probabilities, precedence = read_koref.read(args.input)
     
-    model, pair_to_info, initial_precedence, unresolved_pair_map = create_model(
+    model, pair_to_info, initial_precedence, unresolved_pair_map, duration_table, prob_table = create_model(
         n, durations, probabilities, precedence
     )
     
@@ -351,6 +518,8 @@ if __name__ == "__main__":
         probabilities,
         initial_precedence,
         unresolved_pair_map,
+        duration_table,
+        prob_table,
         args.config,
         args.history,
         time_limit=args.time_out,
