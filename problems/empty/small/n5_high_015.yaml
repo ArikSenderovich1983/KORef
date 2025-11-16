@@ -1,0 +1,36 @@
+name: chain_5_high
+description: Chain structure with 5 activities, high risk, EMPTY precedence
+category: chain
+difficulty: small
+risk_level: high
+metadata:
+  n_activities: 5
+  n_precedence: 0
+  n_unresolved_pairs: 10
+  graph_structure: chain
+  duration_distribution: varied
+  ko_probability_distribution: high
+  precedence_type: empty
+  original_expected_makespan: 7.7
+activities:
+- id: 0
+  name: Step_00
+  duration: 4.3
+  ko_probability: 0.7
+- id: 1
+  name: Step_01
+  duration: 3.6
+  ko_probability: 0.66
+- id: 2
+  name: Step_02
+  duration: 4.7
+  ko_probability: 0.58
+- id: 3
+  name: Step_03
+  duration: 7.7
+  ko_probability: 0.7
+- id: 4
+  name: Step_04
+  duration: 5.3
+  ko_probability: 0.64
+precedence: []

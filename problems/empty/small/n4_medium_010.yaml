@@ -1,0 +1,32 @@
+name: mixed_4_medium
+description: Mixed structure with 4 activities, medium risk, EMPTY precedence
+category: mixed
+difficulty: small
+risk_level: medium
+metadata:
+  n_activities: 4
+  n_precedence: 0
+  n_unresolved_pairs: 6
+  graph_structure: mixed
+  duration_distribution: varied
+  ko_probability_distribution: medium
+  precedence_type: empty
+  original_expected_makespan: 6.8
+activities:
+- id: 0
+  name: Activity_00
+  duration: 2.5
+  ko_probability: 0.31
+- id: 1
+  name: Activity_01
+  duration: 2.7
+  ko_probability: 0.43
+- id: 2
+  name: Activity_02
+  duration: 6.8
+  ko_probability: 0.38
+- id: 3
+  name: Activity_03
+  duration: 2.4
+  ko_probability: 0.38
+precedence: []

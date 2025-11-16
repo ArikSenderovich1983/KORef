@@ -1,0 +1,68 @@
+name: mixed_13_high
+description: Mixed structure with 13 activities, high risk, EMPTY precedence
+category: mixed
+difficulty: large
+risk_level: high
+metadata:
+  n_activities: 13
+  n_precedence: 0
+  n_unresolved_pairs: 78
+  graph_structure: mixed
+  duration_distribution: varied
+  ko_probability_distribution: high
+  precedence_type: empty
+  original_expected_makespan: 7.9
+activities:
+- id: 0
+  name: Activity_00
+  duration: 5.2
+  ko_probability: 0.67
+- id: 1
+  name: Activity_01
+  duration: 4.6
+  ko_probability: 0.68
+- id: 2
+  name: Activity_02
+  duration: 6.4
+  ko_probability: 0.65
+- id: 3
+  name: Activity_03
+  duration: 4.2
+  ko_probability: 0.58
+- id: 4
+  name: Activity_04
+  duration: 5.4
+  ko_probability: 0.54
+- id: 5
+  name: Activity_05
+  duration: 5.3
+  ko_probability: 0.51
+- id: 6
+  name: Activity_06
+  duration: 5.0
+  ko_probability: 0.65
+- id: 7
+  name: Activity_07
+  duration: 3.7
+  ko_probability: 0.7
+- id: 8
+  name: Activity_08
+  duration: 6.1
+  ko_probability: 0.52
+- id: 9
+  name: Activity_09
+  duration: 7.9
+  ko_probability: 0.58
+- id: 10
+  name: Activity_10
+  duration: 6.8
+  ko_probability: 0.57
+- id: 11
+  name: Activity_11
+  duration: 7.6
+  ko_probability: 0.65
+- id: 12
+  name: Activity_12
+  duration: 3.2
+  ko_probability: 0.6
+precedence: []

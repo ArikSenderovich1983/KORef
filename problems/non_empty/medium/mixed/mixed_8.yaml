@@ -9,6 +9,7 @@ metadata:
   graph_structure: mixed
   duration_distribution: highly_varied
   ko_probability_distribution: high_risk_heavy
+  original_expected_makespan: 10.005016
 activities:
 - id: 0
   name: Start

@@ -1,0 +1,56 @@
+name: dag_10_medium
+description: DAG structure with 10 activities, medium risk, EMPTY precedence
+category: dag
+difficulty: medium
+risk_level: medium
+metadata:
+  n_activities: 10
+  n_precedence: 0
+  n_unresolved_pairs: 45
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: medium
+  precedence_type: empty
+  original_expected_makespan: 6.3
+activities:
+- id: 0
+  name: Node_00
+  duration: 4.0
+  ko_probability: 0.5
+- id: 1
+  name: Node_01
+  duration: 5.2
+  ko_probability: 0.39
+- id: 2
+  name: Node_02
+  duration: 5.6
+  ko_probability: 0.32
+- id: 3
+  name: Node_03
+  duration: 6.2
+  ko_probability: 0.47
+- id: 4
+  name: Node_04
+  duration: 5.9
+  ko_probability: 0.45
+- id: 5
+  name: Node_05
+  duration: 6.3
+  ko_probability: 0.34
+- id: 6
+  name: Node_06
+  duration: 4.7
+  ko_probability: 0.35
+- id: 7
+  name: Node_07
+  duration: 4.0
+  ko_probability: 0.39
+- id: 8
+  name: Node_08
+  duration: 4.5
+  ko_probability: 0.32
+- id: 9
+  name: Node_09
+  duration: 4.6
+  ko_probability: 0.43
+precedence: []

@@ -1,0 +1,52 @@
+name: dag_9_medium
+description: DAG structure with 9 activities, medium risk, EMPTY precedence
+category: dag
+difficulty: medium
+risk_level: medium
+metadata:
+  n_activities: 9
+  n_precedence: 0
+  n_unresolved_pairs: 36
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: medium
+  precedence_type: empty
+  original_expected_makespan: 7.5
+activities:
+- id: 0
+  name: Node_00
+  duration: 4.3
+  ko_probability: 0.36
+- id: 1
+  name: Node_01
+  duration: 6.3
+  ko_probability: 0.45
+- id: 2
+  name: Node_02
+  duration: 7.2
+  ko_probability: 0.31
+- id: 3
+  name: Node_03
+  duration: 2.4
+  ko_probability: 0.43
+- id: 4
+  name: Node_04
+  duration: 7.5
+  ko_probability: 0.5
+- id: 5
+  name: Node_05
+  duration: 6.5
+  ko_probability: 0.39
+- id: 6
+  name: Node_06
+  duration: 2.6
+  ko_probability: 0.43
+- id: 7
+  name: Node_07
+  duration: 7.2
+  ko_probability: 0.39
+- id: 8
+  name: Node_08
+  duration: 6.2
+  ko_probability: 0.48
+precedence: []

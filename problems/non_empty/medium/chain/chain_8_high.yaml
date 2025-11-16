@@ -8,6 +8,7 @@ metadata:
   graph_structure: chain
   duration_distribution: varied
   ko_probability_distribution: high_risk
+  original_expected_makespan: 11.469342
 activities:
 - id: 0
   name: Activity_00

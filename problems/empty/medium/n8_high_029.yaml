@@ -1,0 +1,48 @@
+name: parallel_8_very_high
+description: Parallel structure with 8 activities, very_high risk, EMPTY precedence
+category: parallel
+difficulty: medium
+risk_level: very_high
+metadata:
+  n_activities: 8
+  n_precedence: 0
+  n_unresolved_pairs: 28
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: very_high
+  precedence_type: empty
+  original_expected_makespan: 7.9
+activities:
+- id: 0
+  name: Task_00
+  duration: 3.7
+  ko_probability: 0.89
+- id: 1
+  name: Task_01
+  duration: 6.9
+  ko_probability: 0.81
+- id: 2
+  name: Task_02
+  duration: 4.7
+  ko_probability: 0.76
+- id: 3
+  name: Task_03
+  duration: 3.9
+  ko_probability: 0.89
+- id: 4
+  name: Task_04
+  duration: 4.4
+  ko_probability: 0.8
+- id: 5
+  name: Task_05
+  duration: 7.9
+  ko_probability: 0.83
+- id: 6
+  name: Task_06
+  duration: 5.3
+  ko_probability: 0.78
+- id: 7
+  name: Task_07
+  duration: 3.1
+  ko_probability: 0.77
+precedence: []

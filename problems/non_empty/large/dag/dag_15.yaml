@@ -9,6 +9,7 @@ metadata:
   graph_structure: dag
   duration_distribution: varied
   ko_probability_distribution: high_risk_heavy
+  original_expected_makespan: 7.615824
 activities:
 - id: 0
   name: Node_00

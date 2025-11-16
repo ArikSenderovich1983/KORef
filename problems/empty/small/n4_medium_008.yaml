@@ -1,0 +1,32 @@
+name: chain_4_medium
+description: Chain structure with 4 activities, medium risk, EMPTY precedence
+category: chain
+difficulty: small
+risk_level: medium
+metadata:
+  n_activities: 4
+  n_precedence: 0
+  n_unresolved_pairs: 6
+  graph_structure: chain
+  duration_distribution: varied
+  ko_probability_distribution: medium
+  precedence_type: empty
+  original_expected_makespan: 7.5
+activities:
+- id: 0
+  name: Step_00
+  duration: 7.3
+  ko_probability: 0.36
+- id: 1
+  name: Step_01
+  duration: 5.9
+  ko_probability: 0.38
+- id: 2
+  name: Step_02
+  duration: 7.5
+  ko_probability: 0.39
+- id: 3
+  name: Step_03
+  duration: 3.6
+  ko_probability: 0.35
+precedence: []

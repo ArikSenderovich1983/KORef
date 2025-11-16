@@ -1,0 +1,32 @@
+name: dag_4_medium
+description: DAG structure with 4 activities, medium risk, EMPTY precedence
+category: dag
+difficulty: small
+risk_level: medium
+metadata:
+  n_activities: 4
+  n_precedence: 0
+  n_unresolved_pairs: 6
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: medium
+  precedence_type: empty
+  original_expected_makespan: 8.0
+activities:
+- id: 0
+  name: Node_00
+  duration: 8.0
+  ko_probability: 0.41
+- id: 1
+  name: Node_01
+  duration: 7.8
+  ko_probability: 0.47
+- id: 2
+  name: Node_02
+  duration: 2.1
+  ko_probability: 0.44
+- id: 3
+  name: Node_03
+  duration: 6.1
+  ko_probability: 0.41
+precedence: []

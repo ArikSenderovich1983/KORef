@@ -17,9 +17,8 @@ The goal is to find a refinement `≺'` of `≺` (i.e., `≺ ⊆ ≺'`) that min
 - `koref_utils.py`: Core algorithms for computing schedules and expected makespan
 - `read_koref.py`: Instance reader and validation utilities
 - `koref_domain.py`: DIDP model implementation and solver
-- `benchmark.py`: Unified benchmark script for all problem types
-- `benchmark_all_problems.py`: Benchmark script for non-empty constraint problems
-- `benchmark_empty_constraints.py`: Benchmark script for empty constraint problems
+- `generate_problems.py`: Unified problem generator (empty/non-empty, all structures, all risk levels)
+- `benchmark_unified.py`: Unified benchmark script for all problem types (default timeout: 30s)
 - `test_single_instance.py`: Quick test script
 - `test_instance.koref`: Example instance file
 
@@ -119,14 +118,23 @@ python koref_domain.py problems/non_empty/small/chain/chain_3.yaml --config CABS
 Run benchmarks on all problems:
 
 ```bash
-# Benchmark all problems (empty and non-empty)
-python benchmark.py --type all --time-limit 1800 --output benchmark_all
+# Benchmark all problems (empty and non-empty) with default 30s timeout
+python benchmark_unified.py
 
-# Benchmark only empty constraint problems
-python benchmark.py --type empty --time-limit 30 --output benchmark_empty
+# Benchmark with custom timeout
+python benchmark_unified.py --time-limit 60 --output benchmark_results
+```
 
-# Benchmark only non-empty constraint problems
-python benchmark.py --type non_empty --time-limit 3600 --output benchmark_non_empty
+### Problem Generation
+
+Generate problems with different characteristics:
+
+```bash
+# Generate all problem types (empty/non-empty, all structures, all risk levels)
+python generate_problems.py
+
+# Generate specific types only
+python generate_problems.py --constraint-types empty non_empty --structures chain dag --risk-levels high medium --instances 5
 ```
 
 Results are saved as CSV and Markdown files with detailed tables showing:

@@ -9,6 +9,7 @@ metadata:
   graph_structure: chain
   duration_distribution: uniform
   ko_probability_distribution: high_risk_heavy
+  original_expected_makespan: 6.240234
 activities:
 - id: 0
   name: Step_1

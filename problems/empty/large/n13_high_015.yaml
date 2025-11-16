@@ -1,0 +1,68 @@
+name: chain_13_high
+description: Chain structure with 13 activities, high risk, EMPTY precedence
+category: chain
+difficulty: large
+risk_level: high
+metadata:
+  n_activities: 13
+  n_precedence: 0
+  n_unresolved_pairs: 78
+  graph_structure: chain
+  duration_distribution: varied
+  ko_probability_distribution: high
+  precedence_type: empty
+  original_expected_makespan: 7.9
+activities:
+- id: 0
+  name: Step_00
+  duration: 5.0
+  ko_probability: 0.63
+- id: 1
+  name: Step_01
+  duration: 3.7
+  ko_probability: 0.69
+- id: 2
+  name: Step_02
+  duration: 4.9
+  ko_probability: 0.66
+- id: 3
+  name: Step_03
+  duration: 6.1
+  ko_probability: 0.56
+- id: 4
+  name: Step_04
+  duration: 2.4
+  ko_probability: 0.51
+- id: 5
+  name: Step_05
+  duration: 4.6
+  ko_probability: 0.6
+- id: 6
+  name: Step_06
+  duration: 3.2
+  ko_probability: 0.62
+- id: 7
+  name: Step_07
+  duration: 3.9
+  ko_probability: 0.64
+- id: 8
+  name: Step_08
+  duration: 6.4
+  ko_probability: 0.67
+- id: 9
+  name: Step_09
+  duration: 7.9
+  ko_probability: 0.53
+- id: 10
+  name: Step_10
+  duration: 4.2
+  ko_probability: 0.61
+- id: 11
+  name: Step_11
+  duration: 3.9
+  ko_probability: 0.59
+- id: 12
+  name: Step_12
+  duration: 3.6
+  ko_probability: 0.55
+precedence: []

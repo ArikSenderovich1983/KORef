@@ -1,0 +1,36 @@
+name: parallel_5_medium
+description: Parallel structure with 5 activities, medium risk, EMPTY precedence
+category: parallel
+difficulty: small
+risk_level: medium
+metadata:
+  n_activities: 5
+  n_precedence: 0
+  n_unresolved_pairs: 10
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: medium
+  precedence_type: empty
+  original_expected_makespan: 7.9
+activities:
+- id: 0
+  name: Task_00
+  duration: 4.5
+  ko_probability: 0.39
+- id: 1
+  name: Task_01
+  duration: 6.4
+  ko_probability: 0.43
+- id: 2
+  name: Task_02
+  duration: 7.9
+  ko_probability: 0.32
+- id: 3
+  name: Task_03
+  duration: 4.4
+  ko_probability: 0.37
+- id: 4
+  name: Task_04
+  duration: 7.2
+  ko_probability: 0.35
+precedence: []

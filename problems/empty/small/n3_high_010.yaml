@@ -1,0 +1,28 @@
+name: chain_3_very_high
+description: Chain structure with 3 activities, very_high risk, EMPTY precedence
+category: chain
+difficulty: small
+risk_level: very_high
+metadata:
+  n_activities: 3
+  n_precedence: 0
+  n_unresolved_pairs: 3
+  graph_structure: chain
+  duration_distribution: varied
+  ko_probability_distribution: very_high
+  precedence_type: empty
+  original_expected_makespan: 5.8
+activities:
+- id: 0
+  name: Step_00
+  duration: 5.8
+  ko_probability: 0.77
+- id: 1
+  name: Step_01
+  duration: 4.2
+  ko_probability: 0.74
+- id: 2
+  name: Step_02
+  duration: 3.6
+  ko_probability: 0.89
+precedence: []

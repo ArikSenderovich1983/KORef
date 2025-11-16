@@ -1,0 +1,40 @@
+name: parallel_6_high
+description: Parallel structure with 6 activities, high risk, EMPTY precedence
+category: parallel
+difficulty: medium
+risk_level: high
+metadata:
+  n_activities: 6
+  n_precedence: 0
+  n_unresolved_pairs: 15
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: high
+  precedence_type: empty
+  original_expected_makespan: 7.9
+activities:
+- id: 0
+  name: Task_00
+  duration: 5.8
+  ko_probability: 0.58
+- id: 1
+  name: Task_01
+  duration: 7.9
+  ko_probability: 0.61
+- id: 2
+  name: Task_02
+  duration: 7.6
+  ko_probability: 0.52
+- id: 3
+  name: Task_03
+  duration: 7.8
+  ko_probability: 0.54
+- id: 4
+  name: Task_04
+  duration: 7.8
+  ko_probability: 0.55
+- id: 5
+  name: Task_05
+  duration: 2.7
+  ko_probability: 0.59
+precedence: []

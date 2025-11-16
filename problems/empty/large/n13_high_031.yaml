@@ -1,0 +1,68 @@
+name: parallel_13_high
+description: Parallel structure with 13 activities, high risk, EMPTY precedence
+category: parallel
+difficulty: large
+risk_level: high
+metadata:
+  n_activities: 13
+  n_precedence: 0
+  n_unresolved_pairs: 78
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: high
+  precedence_type: empty
+  original_expected_makespan: 7.8
+activities:
+- id: 0
+  name: Task_00
+  duration: 2.6
+  ko_probability: 0.56
+- id: 1
+  name: Task_01
+  duration: 4.3
+  ko_probability: 0.62
+- id: 2
+  name: Task_02
+  duration: 3.5
+  ko_probability: 0.67
+- id: 3
+  name: Task_03
+  duration: 3.0
+  ko_probability: 0.57
+- id: 4
+  name: Task_04
+  duration: 5.5
+  ko_probability: 0.56
+- id: 5
+  name: Task_05
+  duration: 6.6
+  ko_probability: 0.6
+- id: 6
+  name: Task_06
+  duration: 5.1
+  ko_probability: 0.6
+- id: 7
+  name: Task_07
+  duration: 3.9
+  ko_probability: 0.5
+- id: 8
+  name: Task_08
+  duration: 7.7
+  ko_probability: 0.6
+- id: 9
+  name: Task_09
+  duration: 7.8
+  ko_probability: 0.54
+- id: 10
+  name: Task_10
+  duration: 4.1
+  ko_probability: 0.51
+- id: 11
+  name: Task_11
+  duration: 5.0
+  ko_probability: 0.68
+- id: 12
+  name: Task_12
+  duration: 5.9
+  ko_probability: 0.59
+precedence: []

@@ -9,6 +9,7 @@ metadata:
   graph_structure: sparse
   duration_distribution: varied
   ko_probability_distribution: high_risk_heavy
+  original_expected_makespan: 6.010859
 activities:
 - id: 0
   name: A1

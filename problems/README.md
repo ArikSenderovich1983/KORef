@@ -34,6 +34,20 @@ problems/
 
 ## Instance Naming Convention
 
+### Empty Constraint Problems
+Format: `n{size}_{risk_level}_{counter}.yaml`
+
+- `n{size}`: number of activities (e.g., `n3`, `n11`)
+- `risk_level`: medium, high, very_high (KO probability ranges)
+- `counter`: 3-digit sequential number (001, 002, ...) to handle multiple instances with same size/risk
+
+Examples:
+- `n3_high_001.yaml` - 3 activities, high risk, first instance
+- `n11_very_high_015.yaml` - 11 activities, very high risk, 15th instance
+
+**Note:** Structure labels (chain/dag/parallel/mixed) are not used since empty problems have no precedence structure.
+
+### Non-Empty Constraint Problems
 Format: `{structure}_{size}_{risk_level}[_variant].yaml`
 
 - `structure`: chain, parallel, mixed, dag

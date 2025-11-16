@@ -1,0 +1,36 @@
+name: dag_5_high
+description: DAG structure with 5 activities, high risk, EMPTY precedence
+category: dag
+difficulty: small
+risk_level: high
+metadata:
+  n_activities: 5
+  n_precedence: 0
+  n_unresolved_pairs: 10
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: high
+  precedence_type: empty
+  original_expected_makespan: 5.6
+activities:
+- id: 0
+  name: Node_00
+  duration: 5.6
+  ko_probability: 0.62
+- id: 1
+  name: Node_01
+  duration: 4.5
+  ko_probability: 0.62
+- id: 2
+  name: Node_02
+  duration: 5.1
+  ko_probability: 0.69
+- id: 3
+  name: Node_03
+  duration: 3.2
+  ko_probability: 0.64
+- id: 4
+  name: Node_04
+  duration: 3.4
+  ko_probability: 0.58
+precedence: []

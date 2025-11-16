@@ -1,0 +1,76 @@
+name: dag_15_very_high
+description: DAG structure with 15 activities, very_high risk, EMPTY precedence
+category: dag
+difficulty: large
+risk_level: very_high
+metadata:
+  n_activities: 15
+  n_precedence: 0
+  n_unresolved_pairs: 105
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: very_high
+  precedence_type: empty
+  original_expected_makespan: 7.8
+activities:
+- id: 0
+  name: Node_00
+  duration: 2.6
+  ko_probability: 0.76
+- id: 1
+  name: Node_01
+  duration: 7.7
+  ko_probability: 0.77
+- id: 2
+  name: Node_02
+  duration: 5.7
+  ko_probability: 0.86
+- id: 3
+  name: Node_03
+  duration: 4.0
+  ko_probability: 0.77
+- id: 4
+  name: Node_04
+  duration: 6.9
+  ko_probability: 0.87
+- id: 5
+  name: Node_05
+  duration: 7.8
+  ko_probability: 0.73
+- id: 6
+  name: Node_06
+  duration: 3.9
+  ko_probability: 0.89
+- id: 7
+  name: Node_07
+  duration: 3.2
+  ko_probability: 0.76
+- id: 8
+  name: Node_08
+  duration: 7.8
+  ko_probability: 0.89
+- id: 9
+  name: Node_09
+  duration: 3.7
+  ko_probability: 0.84
+- id: 10
+  name: Node_10
+  duration: 4.9
+  ko_probability: 0.82
+- id: 11
+  name: Node_11
+  duration: 3.5
+  ko_probability: 0.78
+- id: 12
+  name: Node_12
+  duration: 6.9
+  ko_probability: 0.78
+- id: 13
+  name: Node_13
+  duration: 2.7
+  ko_probability: 0.81
+- id: 14
+  name: Node_14
+  duration: 5.6
+  ko_probability: 0.81
+precedence: []
