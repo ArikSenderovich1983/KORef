@@ -141,9 +141,21 @@ def create_model(n, durations, probabilities, precedence):
     pair_to_a = model.add_int_table([pair_to_info[i][0] for i in range(num_pairs)])
     pair_to_b = model.add_int_table([pair_to_info[i][1] for i in range(num_pairs)])
     
-    # Base case: terminal state when no unresolved pairs
-    # Terminal cost will be computed by evaluating expected makespan
+    # Base case: Allow both complete refinements (all pairs resolved) and partial refinements
+    # We accept as terminal:
+    # 1. States where all pairs are resolved (complete refinements)
+    # 2. States where at least one constraint was added (partial refinements)
+    # Add base case for complete refinements
     model.add_base_case([unresolved.is_empty()])
+    # Add base case for partial refinements (states with at least one constraint added)
+    # Note: This allows stopping early without resolving all pairs
+    # A refinement is valid if it adds at least one constraint (partial) or resolves all pairs (complete)
+    try:
+        model.add_base_case([added_constraints.len() > 0])
+    except Exception as e:
+        # If DIDP doesn't support multiple base cases, we'll only evaluate complete refinements
+        # Partial refinements would need a different approach (e.g., no-op transitions)
+        print(f"Note: Multiple base cases not supported, only complete refinements will be evaluated: {e}")
     
     # Transitions: for each unresolved unordered pair {a,b}, we can add either a<b or b<a
     # When we add a constraint, we remove the canonical pair index from unresolved
@@ -166,7 +178,7 @@ def create_model(n, durations, probabilities, precedence):
         if constraint_idx_ab is not None:
             add_a_prec_b = dp.Transition(
                 name=f"add_precedence_{a}_before_{b}",
-                cost=dp.FloatExpr.state_cost(),  # Cost computed at terminal state
+                cost=0,  # Zero cost - actual cost computed at terminal state
                 effects=[
                     (unresolved, unresolved.remove(pidx_ab)),
                     (added_constraints, added_constraints.add(constraint_idx_ab)),
@@ -184,7 +196,7 @@ def create_model(n, durations, probabilities, precedence):
         if constraint_idx_ba is not None:
             add_b_prec_a = dp.Transition(
                 name=f"add_precedence_{b}_before_{a}",
-                cost=dp.FloatExpr.state_cost(),
+                cost=0,  # Zero cost - actual cost computed at terminal state
                 effects=[
                     (unresolved, unresolved.remove(pidx_ab)),
                     (added_constraints, added_constraints.add(constraint_idx_ba)),
@@ -254,19 +266,26 @@ def solve_optimal_exhaustive(
     """
     Exhaustively explore all terminal states and find the one with minimum expected makespan.
     This guarantees optimality by evaluating exact expected makespan for every complete refinement.
+    Also evaluates the original precedence as a candidate solution.
     """
     import time
     start_time = time.time()
     
+    # First, evaluate the original precedence as a candidate solution
+    # The original precedence is itself a refinement (trivial refinement)
+    print("Evaluating original precedence as candidate solution...")
+    original_makespan = compute_terminal_cost(initial_precedence, n, durations, probabilities)
+    print(f"  Original precedence makespan: {original_makespan:.6f}")
+    
+    best_cost = original_makespan
+    best_precedence = initial_precedence.copy()
+    best_transitions = None
+    terminal_count = 1  # Count original as first terminal state
+    
     # Use BreadthFirstSearch to explore all states systematically
     solver = dp.BreadthFirstSearch(model, time_limit=time_limit, quiet=False)
     
-    best_cost = float('inf')
-    best_precedence = None
-    best_transitions = None
-    terminal_count = 0
-    
-    print("Exploring all terminal states to find optimal solution...")
+    print("Exploring all refined terminal states to find optimal solution...")
     
     # Explore all states - BreadthFirstSearch will find all terminal states
     is_terminated = False
@@ -280,27 +299,26 @@ def solve_optimal_exhaustive(
         
         # Check if this solution represents a terminal state
         # Terminal states satisfy the base case: unresolved.is_empty()
-        # Solutions with transitions represent paths to terminal states
-        if not solution.is_infeasible and solution.transitions:
+        # Solutions may have transitions (refinements) or no transitions (original precedence)
+        if not solution.is_infeasible:
             # Count how many precedence constraints were added
             # For a complete refinement, we should have added constraints for all
             # unresolved pairs. The number of transitions should equal the number
             # of unresolved pairs we started with.
             
-            # Extract precedence and verify it's acyclic
+            # Extract refined precedence from transitions
+            # Skip if no transitions (we already evaluated original precedence)
+            if len(solution.transitions) == 0:
+                continue  # Skip - we already evaluated original precedence above
+            
+            # Extract refined precedence from transitions
             refined_precedence = extract_precedence_from_solution(
                 solution.transitions, n, initial_precedence
             )
             
             if refined_precedence is not None:
-                # Verify this is a complete refinement by checking we have enough constraints
-                # For n activities with k unresolved pairs initially, we need k transitions
-                num_unresolved_init = len([(a,b) for a in range(n) for b in range(a+1, n)
-                                          if not initial_precedence.get((a,b), False) 
-                                          and not initial_precedence.get((b,a), False)])
-                
-                # A complete refinement should have resolved all pairs
-                # Check: number of added constraints should equal number of unresolved pairs
+                # Evaluate this refinement (can be partial - doesn't need to resolve all pairs)
+                # A refinement is valid as long as it extends the original precedence
                 num_added = len(solution.transitions)
                 
                 # Compute exact expected makespan for this terminal state
@@ -312,11 +330,12 @@ def solve_optimal_exhaustive(
                 if terminal_count % 10 == 0:
                     print(f"  Evaluated {terminal_count} terminal states, current best: {best_cost:.6f}")
                 
-                if expected_makespan < best_cost:
+                if expected_makespan <= best_cost:  # Use <= to allow ties (refinements should be at least as good)
                     best_cost = expected_makespan
                     best_precedence = refined_precedence
                     best_transitions = solution.transitions
-                    print(f"  New best: expected_makespan = {best_cost:.6f} (from {num_added} constraints)")
+                    improvement = original_makespan - expected_makespan
+                    print(f"  New best: expected_makespan = {best_cost:.6f} (improvement: {improvement:.6f}, from {num_added} constraints)")
     
     print(f"\nExplored {terminal_count} terminal states")
     

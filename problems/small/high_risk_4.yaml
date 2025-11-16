@@ -1,36 +1,29 @@
-# KORef Problem Instance
 name: high_risk_4
-description: 4 activities with high KO probabilities
+description: 4 activities with high KO probabilities (knockout-heavy)
 category: parallel
 difficulty: medium
-
 metadata:
   n_activities: 4
   n_precedence: 0
   n_unresolved_pairs: 6
-  graph_structure: "parallel"
-  duration_distribution: "varied"
-  ko_probability_distribution: "high_risk"
-
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: high_risk_heavy
 activities:
-  - id: 0
-    name: "Risky_Task_A"
-    duration: 4.0
-    ko_probability: 0.4
-    
-  - id: 1
-    name: "Risky_Task_B"
-    duration: 3.0
-    ko_probability: 0.35
-    
-  - id: 2
-    name: "Risky_Task_C"
-    duration: 5.0
-    ko_probability: 0.45
-    
-  - id: 3
-    name: "Risky_Task_D"
-    duration: 2.0
-    ko_probability: 0.3
-
+- id: 0
+  name: Risky_Task_A
+  duration: 4.0
+  ko_probability: 0.49
+- id: 1
+  name: Risky_Task_B
+  duration: 3.0
+  ko_probability: 0.31
+- id: 2
+  name: Risky_Task_C
+  duration: 5.0
+  ko_probability: 0.38
+- id: 3
+  name: Risky_Task_D
+  duration: 2.0
+  ko_probability: 0.37
 precedence: []

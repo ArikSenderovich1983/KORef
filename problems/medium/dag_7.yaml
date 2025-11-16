@@ -1,55 +1,49 @@
-# KORef Problem Instance
 name: dag_7
-description: 7 activities in a DAG structure (partial order)
+description: 7 activities in a DAG structure (partial order) (knockout-heavy)
 category: dag
 difficulty: hard
-
 metadata:
   n_activities: 7
   n_precedence: 4
   n_unresolved_pairs: 17
-  graph_structure: "dag"
-  duration_distribution: "varied"
-  ko_probability_distribution: "mixed"
-
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: high_risk_heavy
 activities:
-  - id: 0
-    name: "Init"
-    duration: 2.0
-    ko_probability: 0.05
-    
-  - id: 1
-    name: "Branch_A_1"
-    duration: 3.0
-    ko_probability: 0.15
-    
-  - id: 2
-    name: "Branch_A_2"
-    duration: 4.0
-    ko_probability: 0.2
-    
-  - id: 3
-    name: "Branch_B_1"
-    duration: 3.5
-    ko_probability: 0.18
-    
-  - id: 4
-    name: "Branch_B_2"
-    duration: 5.0
-    ko_probability: 0.12
-    
-  - id: 5
-    name: "Merge"
-    duration: 2.0
-    ko_probability: 0.1
-    
-  - id: 6
-    name: "Finalize"
-    duration: 3.0
-    ko_probability: 0.08
-
+- id: 0
+  name: Init
+  duration: 2.0
+  ko_probability: 0.59
+- id: 1
+  name: Branch_A_1
+  duration: 3.0
+  ko_probability: 0.41
+- id: 2
+  name: Branch_A_2
+  duration: 4.0
+  ko_probability: 0.48
+- id: 3
+  name: Branch_B_1
+  duration: 3.5
+  ko_probability: 0.47
+- id: 4
+  name: Branch_B_2
+  duration: 5.0
+  ko_probability: 0.62
+- id: 5
+  name: Merge
+  duration: 2.0
+  ko_probability: 0.6
+- id: 6
+  name: Finalize
+  duration: 3.0
+  ko_probability: 0.67
 precedence:
-  - [0, 1]  # Init -> Branch_A_1
-  - [0, 3]  # Init -> Branch_B_1
-  - [1, 2]  # Branch_A_1 -> Branch_A_2
-  - [3, 4]  # Branch_B_1 -> Branch_B_2
+- - 0
+  - 1
+- - 0
+  - 3
+- - 1
+  - 2
+- - 3
+  - 4

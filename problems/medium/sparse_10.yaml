@@ -1,68 +1,57 @@
-# KORef Problem Instance
 name: sparse_10
-description: 10 activities with sparse precedence (few constraints)
+description: 10 activities with sparse precedence (few constraints) (knockout-heavy)
 category: mixed
 difficulty: very_hard
-
 metadata:
   n_activities: 10
   n_precedence: 2
   n_unresolved_pairs: 43
-  graph_structure: "sparse"
-  duration_distribution: "varied"
-  ko_probability_distribution: "low_risk"
-
+  graph_structure: sparse
+  duration_distribution: varied
+  ko_probability_distribution: high_risk_heavy
 activities:
-  - id: 0
-    name: "A1"
-    duration: 3.0
-    ko_probability: 0.08
-    
-  - id: 1
-    name: "A2"
-    duration: 4.0
-    ko_probability: 0.1
-    
-  - id: 2
-    name: "A3"
-    duration: 5.0
-    ko_probability: 0.12
-    
-  - id: 3
-    name: "A4"
-    duration: 3.5
-    ko_probability: 0.09
-    
-  - id: 4
-    name: "A5"
-    duration: 4.5
-    ko_probability: 0.11
-    
-  - id: 5
-    name: "A6"
-    duration: 2.0
-    ko_probability: 0.07
-    
-  - id: 6
-    name: "A7"
-    duration: 6.0
-    ko_probability: 0.13
-    
-  - id: 7
-    name: "A8"
-    duration: 3.0
-    ko_probability: 0.1
-    
-  - id: 8
-    name: "A9"
-    duration: 4.0
-    ko_probability: 0.09
-    
-  - id: 9
-    name: "A10"
-    duration: 5.0
-    ko_probability: 0.08
-
+- id: 0
+  name: A1
+  duration: 3.0
+  ko_probability: 0.59
+- id: 1
+  name: A2
+  duration: 4.0
+  ko_probability: 0.41
+- id: 2
+  name: A3
+  duration: 5.0
+  ko_probability: 0.48
+- id: 3
+  name: A4
+  duration: 3.5
+  ko_probability: 0.47
+- id: 4
+  name: A5
+  duration: 4.5
+  ko_probability: 0.62
+- id: 5
+  name: A6
+  duration: 2.0
+  ko_probability: 0.6
+- id: 6
+  name: A7
+  duration: 6.0
+  ko_probability: 0.67
+- id: 7
+  name: A8
+  duration: 3.0
+  ko_probability: 0.43
+- id: 8
+  name: A9
+  duration: 4.0
+  ko_probability: 0.53
+- id: 9
+  name: A10
+  duration: 5.0
+  ko_probability: 0.41
 precedence:
-  - [0, 5]  # A1 -> A6
-  - [2, 9]  # A3 -> A10
+- - 0
+  - 5
+- - 2
+  - 9

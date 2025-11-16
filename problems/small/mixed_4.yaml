@@ -1,38 +1,33 @@
-# KORef Problem Instance
 name: mixed_4
-description: 4 activities with mixed precedence structure
+description: 4 activities with mixed precedence structure (knockout-heavy)
 category: mixed
 difficulty: medium
-
 metadata:
   n_activities: 4
   n_precedence: 2
   n_unresolved_pairs: 4
-  graph_structure: "mixed"
-  duration_distribution: "varied"
-  ko_probability_distribution: "mixed"
-
+  graph_structure: mixed
+  duration_distribution: varied
+  ko_probability_distribution: high_risk_heavy
 activities:
-  - id: 0
-    name: "Start"
-    duration: 2.0
-    ko_probability: 0.05
-    
-  - id: 1
-    name: "Parallel_A"
-    duration: 4.0
-    ko_probability: 0.2
-    
-  - id: 2
-    name: "Parallel_B"
-    duration: 3.0
-    ko_probability: 0.15
-    
-  - id: 3
-    name: "End"
-    duration: 5.0
-    ko_probability: 0.1
-
+- id: 0
+  name: Start
+  duration: 2.0
+  ko_probability: 0.49
+- id: 1
+  name: Parallel_A
+  duration: 4.0
+  ko_probability: 0.31
+- id: 2
+  name: Parallel_B
+  duration: 3.0
+  ko_probability: 0.38
+- id: 3
+  name: End
+  duration: 5.0
+  ko_probability: 0.37
 precedence:
-  - [0, 1]  # Start must precede Parallel_A
-  - [0, 2]  # Start must precede Parallel_B
+- - 0
+  - 1
+- - 0
+  - 2

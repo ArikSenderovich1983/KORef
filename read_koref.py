@@ -152,9 +152,17 @@ def validate(activities, precedence, durations, probabilities, refined_precedenc
         check_acyclic,
     )
     
-    # Check that refined precedence extends original
-    for (a, b) in precedence:
-        if not refined_precedence.get((a, b), False):
+    # Check that refined precedence extends original (using transitive closure)
+    # A refinement means the refined precedence should include all original constraints
+    # (either directly or transitively)
+    from koref_utils import compute_transitive_closure
+    
+    original_closure = compute_transitive_closure(precedence, len(activities))
+    refined_closure = compute_transitive_closure(refined_precedence, len(activities))
+    
+    # Check that every constraint in original_closure is also in refined_closure
+    for (a, b) in original_closure:
+        if original_closure.get((a, b), False) and not refined_closure.get((a, b), False):
             print(f"Error: Refined precedence missing original constraint ({a}, {b})")
             return False
     

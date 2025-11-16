@@ -8,6 +8,9 @@ def compute_earliest_start_schedule(activities, precedence, durations):
     """
     Compute the canonical earliest-start schedule for a given partial order.
     
+    Uses the transitive closure of the precedence relation to ensure all
+    transitive dependencies are respected.
+    
     Args:
         activities: List of activity indices [0, 1, ..., n-1]
         precedence: Dict mapping (a, b) -> True if a must precede b
@@ -17,14 +20,18 @@ def compute_earliest_start_schedule(activities, precedence, durations):
         schedule: Dict mapping activity -> start_time
     """
     n = len(activities)
+    
+    # Compute transitive closure to ensure all transitive dependencies are included
+    precedence_closure = compute_transitive_closure(precedence, n)
+    
     schedule = {}
     
     # Topological sort to determine order
-    # Compute in-degrees
+    # Compute in-degrees using transitive closure
     in_degree = [0] * n
     for a in range(n):
         for b in range(n):
-            if a != b and precedence.get((a, b), False):
+            if a != b and precedence_closure.get((a, b), False):
                 in_degree[b] += 1
     
     # Find activities with no predecessors
@@ -32,10 +39,10 @@ def compute_earliest_start_schedule(activities, precedence, durations):
     
     while queue:
         a = queue.pop(0)
-        # Compute start time: max of completion times of predecessors
+        # Compute start time: max of completion times of all predecessors (transitively)
         start_time = 0.0
         for pred in range(n):
-            if pred != a and precedence.get((pred, a), False):
+            if pred != a and precedence_closure.get((pred, a), False):
                 pred_start = schedule.get(pred, 0.0)
                 pred_finish = pred_start + durations[pred]
                 start_time = max(start_time, pred_finish)
@@ -44,7 +51,7 @@ def compute_earliest_start_schedule(activities, precedence, durations):
         
         # Update in-degrees and add new ready activities
         for b in range(n):
-            if precedence.get((a, b), False):
+            if precedence_closure.get((a, b), False):
                 in_degree[b] -= 1
                 if in_degree[b] == 0:
                     queue.append(b)

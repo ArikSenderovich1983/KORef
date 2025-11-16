@@ -1,59 +1,51 @@
-# KORef Problem Instance
 name: mixed_8
-description: 8 activities with mixed structure and varied properties
+description: 8 activities with mixed structure and varied properties (knockout-heavy)
 category: mixed
 difficulty: hard
-
 metadata:
   n_activities: 8
   n_precedence: 3
   n_unresolved_pairs: 25
-  graph_structure: "mixed"
-  duration_distribution: "highly_varied"
-  ko_probability_distribution: "mixed"
-
+  graph_structure: mixed
+  duration_distribution: highly_varied
+  ko_probability_distribution: high_risk_heavy
 activities:
-  - id: 0
-    name: "Start"
-    duration: 1.0
-    ko_probability: 0.02
-    
-  - id: 1
-    name: "Fast_Task_1"
-    duration: 2.0
-    ko_probability: 0.1
-    
-  - id: 2
-    name: "Fast_Task_2"
-    duration: 2.5
-    ko_probability: 0.12
-    
-  - id: 3
-    name: "Medium_Task_1"
-    duration: 5.0
-    ko_probability: 0.2
-    
-  - id: 4
-    name: "Medium_Task_2"
-    duration: 6.0
-    ko_probability: 0.18
-    
-  - id: 5
-    name: "Long_Task"
-    duration: 10.0
-    ko_probability: 0.15
-    
-  - id: 6
-    name: "Risky_Task"
-    duration: 4.0
-    ko_probability: 0.35
-    
-  - id: 7
-    name: "End"
-    duration: 1.5
-    ko_probability: 0.05
-
+- id: 0
+  name: Start
+  duration: 1.0
+  ko_probability: 0.59
+- id: 1
+  name: Fast_Task_1
+  duration: 2.0
+  ko_probability: 0.41
+- id: 2
+  name: Fast_Task_2
+  duration: 2.5
+  ko_probability: 0.48
+- id: 3
+  name: Medium_Task_1
+  duration: 5.0
+  ko_probability: 0.47
+- id: 4
+  name: Medium_Task_2
+  duration: 6.0
+  ko_probability: 0.62
+- id: 5
+  name: Long_Task
+  duration: 10.0
+  ko_probability: 0.6
+- id: 6
+  name: Risky_Task
+  duration: 4.0
+  ko_probability: 0.67
+- id: 7
+  name: End
+  duration: 1.5
+  ko_probability: 0.43
 precedence:
-  - [0, 1]  # Start -> Fast_Task_1
-  - [0, 2]  # Start -> Fast_Task_2
-  - [5, 7]  # Long_Task -> End
+- - 0
+  - 1
+- - 0
+  - 2
+- - 5
+  - 7
