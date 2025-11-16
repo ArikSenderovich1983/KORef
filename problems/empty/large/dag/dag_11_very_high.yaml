@@ -1,0 +1,59 @@
+name: dag_11_very_high
+description: DAG structure with 11 activities, very_high risk, EMPTY precedence
+category: dag
+difficulty: large
+risk_level: very_high
+metadata:
+  n_activities: 11
+  n_precedence: 0
+  n_unresolved_pairs: 55
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: very_high
+  precedence_type: empty
+activities:
+- id: 0
+  name: Node_00
+  duration: 4.5
+  ko_probability: 0.86
+- id: 1
+  name: Node_01
+  duration: 4.7
+  ko_probability: 0.72
+- id: 2
+  name: Node_02
+  duration: 7.4
+  ko_probability: 0.82
+- id: 3
+  name: Node_03
+  duration: 2.1
+  ko_probability: 0.8
+- id: 4
+  name: Node_04
+  duration: 3.5
+  ko_probability: 0.73
+- id: 5
+  name: Node_05
+  duration: 4.6
+  ko_probability: 0.82
+- id: 6
+  name: Node_06
+  duration: 3.4
+  ko_probability: 0.78
+- id: 7
+  name: Node_07
+  duration: 6.0
+  ko_probability: 0.72
+- id: 8
+  name: Node_08
+  duration: 7.8
+  ko_probability: 0.71
+- id: 9
+  name: Node_09
+  duration: 5.2
+  ko_probability: 0.8
+- id: 10
+  name: Node_10
+  duration: 7.9
+  ko_probability: 0.81
+precedence: []

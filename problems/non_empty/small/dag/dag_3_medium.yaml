@@ -1,0 +1,24 @@
+name: dag_3_medium
+description: Dag structure with 3 activities (medium risk)
+category: dag
+difficulty: small
+metadata:
+  n_activities: 3
+  n_precedence: 0
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: medium_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 6.2
+  ko_probability: 0.31
+- id: 1
+  name: Activity_01
+  duration: 2.4
+  ko_probability: 0.3
+- id: 2
+  name: Activity_02
+  duration: 4.0
+  ko_probability: 0.35
+precedence: []

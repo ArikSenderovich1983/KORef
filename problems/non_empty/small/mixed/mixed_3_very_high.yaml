@@ -1,0 +1,24 @@
+name: mixed_3_very_high
+description: Mixed structure with 3 activities (very_high risk)
+category: mixed
+difficulty: small
+metadata:
+  n_activities: 3
+  n_precedence: 0
+  graph_structure: mixed
+  duration_distribution: varied
+  ko_probability_distribution: very_high_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 7.6
+  ko_probability: 0.49
+- id: 1
+  name: Activity_01
+  duration: 6.1
+  ko_probability: 0.49
+- id: 2
+  name: Activity_02
+  duration: 4.4
+  ko_probability: 0.48
+precedence: []

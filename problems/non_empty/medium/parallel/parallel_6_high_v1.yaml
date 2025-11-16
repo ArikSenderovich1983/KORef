@@ -1,0 +1,40 @@
+name: parallel_6_high_v1
+description: Parallel structure with 6 activities (high risk)
+category: parallel
+difficulty: medium
+metadata:
+  n_activities: 6
+  n_precedence: 2
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: high_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 7.8
+  ko_probability: 0.59
+- id: 1
+  name: Activity_01
+  duration: 5.8
+  ko_probability: 0.61
+- id: 2
+  name: Activity_02
+  duration: 7.9
+  ko_probability: 0.63
+- id: 3
+  name: Activity_03
+  duration: 7.6
+  ko_probability: 0.57
+- id: 4
+  name: Activity_04
+  duration: 7.8
+  ko_probability: 0.58
+- id: 5
+  name: Activity_05
+  duration: 7.8
+  ko_probability: 0.59
+precedence:
+- - 0
+  - 1
+- - 1
+  - 2

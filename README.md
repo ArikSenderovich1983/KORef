@@ -17,7 +17,36 @@ The goal is to find a refinement `≺'` of `≺` (i.e., `≺ ⊆ ≺'`) that min
 - `koref_utils.py`: Core algorithms for computing schedules and expected makespan
 - `read_koref.py`: Instance reader and validation utilities
 - `koref_domain.py`: DIDP model implementation and solver
+- `benchmark.py`: Unified benchmark script for all problem types
+- `benchmark_all_problems.py`: Benchmark script for non-empty constraint problems
+- `benchmark_empty_constraints.py`: Benchmark script for empty constraint problems
+- `test_single_instance.py`: Quick test script
 - `test_instance.koref`: Example instance file
+
+## Problem Structure
+
+Problems are organized in the following directory structure:
+
+```
+problems/
+├── empty/              # Problems with empty initial precedence constraints
+│   ├── small/          # 3-5 activities
+│   │   ├── chain/      # Chain structures
+│   │   ├── parallel/   # Parallel structures
+│   │   ├── mixed/      # Mixed structures
+│   │   └── dag/        # DAG structures
+│   ├── medium/         # 6-10 activities
+│   └── large/          # 11-15 activities
+└── non_empty/          # Problems with existing precedence constraints
+    ├── small/
+    ├── medium/
+    └── large/
+```
+
+Each problem file is in YAML format and includes:
+- Activity definitions (id, name, duration, ko_probability)
+- Precedence constraints (list of [predecessor, successor] pairs)
+- Metadata (category, difficulty, structure type)
 
 ## Instance Format
 
@@ -71,11 +100,33 @@ Options:
 
 ```bash
 # Find optimal solution with exact makespan computation
-python koref_domain.py test_instance.koref --config Optimal --time-out 60
+python koref_domain.py problems/non_empty/small/chain/chain_3.yaml --config Optimal --time-out 60
 
 # Use heuristic solver (faster but not guaranteed optimal)
-python koref_domain.py test_instance.koref --config CABS --time-out 60
+python koref_domain.py problems/non_empty/small/chain/chain_3.yaml --config CABS --time-out 60
 ```
+
+### Benchmarking
+
+Run benchmarks on all problems:
+
+```bash
+# Benchmark all problems (empty and non-empty)
+python benchmark.py --type all --time-limit 1800 --output benchmark_all
+
+# Benchmark only empty constraint problems
+python benchmark.py --type empty --time-limit 30 --output benchmark_empty
+
+# Benchmark only non-empty constraint problems
+python benchmark.py --type non_empty --time-limit 3600 --output benchmark_non_empty
+```
+
+Results are saved as CSV and Markdown files with detailed tables showing:
+- Original makespan (before refinement)
+- Refined makespan (after refinement)
+- Improvement percentage
+- Runtime
+- Optimality status
 
 ## Implementation Notes
 

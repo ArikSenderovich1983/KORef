@@ -1,0 +1,86 @@
+name: dag_15_very_high_v1
+description: Dag structure with 15 activities (very_high risk)
+category: dag
+difficulty: large
+metadata:
+  n_activities: 15
+  n_precedence: 7
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: very_high_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 6.5
+  ko_probability: 0.73
+- id: 1
+  name: Activity_01
+  duration: 4.5
+  ko_probability: 0.73
+- id: 2
+  name: Activity_02
+  duration: 4.9
+  ko_probability: 0.75
+- id: 3
+  name: Activity_03
+  duration: 7.7
+  ko_probability: 0.72
+- id: 4
+  name: Activity_04
+  duration: 4.2
+  ko_probability: 0.76
+- id: 5
+  name: Activity_05
+  duration: 7.7
+  ko_probability: 0.79
+- id: 6
+  name: Activity_06
+  duration: 2.6
+  ko_probability: 0.77
+- id: 7
+  name: Activity_07
+  duration: 5.3
+  ko_probability: 0.8
+- id: 8
+  name: Activity_08
+  duration: 4.2
+  ko_probability: 0.75
+- id: 9
+  name: Activity_09
+  duration: 3.1
+  ko_probability: 0.73
+- id: 10
+  name: Activity_10
+  duration: 7.1
+  ko_probability: 0.76
+- id: 11
+  name: Activity_11
+  duration: 6.0
+  ko_probability: 0.77
+- id: 12
+  name: Activity_12
+  duration: 5.6
+  ko_probability: 0.72
+- id: 13
+  name: Activity_13
+  duration: 6.7
+  ko_probability: 0.74
+- id: 14
+  name: Activity_14
+  duration: 2.8
+  ko_probability: 0.77
+precedence:
+- - 0
+  - 2
+- - 1
+  - 2
+- - 2
+  - 3
+- - 3
+  - 4
+- - 3
+  - 5
+- - 4
+  - 6
+- - 5
+  - 7

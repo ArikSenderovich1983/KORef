@@ -1,0 +1,34 @@
+name: chain_4_high_v1
+description: Chain structure with 4 activities (high risk)
+category: chain
+difficulty: small
+metadata:
+  n_activities: 4
+  n_precedence: 3
+  graph_structure: chain
+  duration_distribution: varied
+  ko_probability_distribution: high_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 7.1
+  ko_probability: 0.46
+- id: 1
+  name: Activity_01
+  duration: 6.8
+  ko_probability: 0.47
+- id: 2
+  name: Activity_02
+  duration: 5.2
+  ko_probability: 0.5
+- id: 3
+  name: Activity_03
+  duration: 4.3
+  ko_probability: 0.46
+precedence:
+- - 0
+  - 1
+- - 1
+  - 2
+- - 2
+  - 3

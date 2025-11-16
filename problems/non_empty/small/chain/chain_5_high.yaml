@@ -1,0 +1,40 @@
+name: chain_5_high
+description: Chain structure with 5 activities (high risk)
+category: chain
+difficulty: small
+metadata:
+  n_activities: 5
+  n_precedence: 4
+  graph_structure: chain
+  duration_distribution: varied
+  ko_probability_distribution: high_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 3.7
+  ko_probability: 0.49
+- id: 1
+  name: Activity_01
+  duration: 6.6
+  ko_probability: 0.42
+- id: 2
+  name: Activity_02
+  duration: 4.5
+  ko_probability: 0.43
+- id: 3
+  name: Activity_03
+  duration: 3.3
+  ko_probability: 0.48
+- id: 4
+  name: Activity_04
+  duration: 2.6
+  ko_probability: 0.44
+precedence:
+- - 0
+  - 1
+- - 1
+  - 2
+- - 2
+  - 3
+- - 3
+  - 4

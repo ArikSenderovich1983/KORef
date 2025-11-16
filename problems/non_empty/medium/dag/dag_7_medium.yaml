@@ -1,0 +1,50 @@
+name: dag_7_medium
+description: Dag structure with 7 activities (medium risk)
+category: dag
+difficulty: medium
+metadata:
+  n_activities: 7
+  n_precedence: 5
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: medium_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 7.0
+  ko_probability: 0.54
+- id: 1
+  name: Activity_01
+  duration: 7.9
+  ko_probability: 0.48
+- id: 2
+  name: Activity_02
+  duration: 7.4
+  ko_probability: 0.49
+- id: 3
+  name: Activity_03
+  duration: 6.0
+  ko_probability: 0.41
+- id: 4
+  name: Activity_04
+  duration: 4.6
+  ko_probability: 0.53
+- id: 5
+  name: Activity_05
+  duration: 3.1
+  ko_probability: 0.44
+- id: 6
+  name: Activity_06
+  duration: 4.0
+  ko_probability: 0.47
+precedence:
+- - 0
+  - 2
+- - 1
+  - 2
+- - 2
+  - 3
+- - 3
+  - 4
+- - 3
+  - 5

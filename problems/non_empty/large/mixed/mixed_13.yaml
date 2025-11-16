@@ -1,0 +1,83 @@
+name: mixed_13
+description: 'Mixed structure with 13 activities: chains and parallel (knockout-heavy)'
+category: mixed
+difficulty: large
+metadata:
+  n_activities: 13
+  n_precedence: 9
+  n_unresolved_pairs: 69
+  graph_structure: mixed
+  duration_distribution: varied
+  ko_probability_distribution: high_risk_heavy
+activities:
+- id: 0
+  name: Activity_00
+  duration: 2.4
+  ko_probability: 0.72
+- id: 1
+  name: Activity_01
+  duration: 6.8
+  ko_probability: 0.53
+- id: 2
+  name: Activity_02
+  duration: 3.1
+  ko_probability: 0.66
+- id: 3
+  name: Activity_03
+  duration: 2.8
+  ko_probability: 0.56
+- id: 4
+  name: Activity_04
+  duration: 4.8
+  ko_probability: 0.76
+- id: 5
+  name: Activity_05
+  duration: 2.5
+  ko_probability: 0.74
+- id: 6
+  name: Activity_06
+  duration: 7.1
+  ko_probability: 0.53
+- id: 7
+  name: Activity_07
+  duration: 5.9
+  ko_probability: 0.66
+- id: 8
+  name: Activity_08
+  duration: 2.1
+  ko_probability: 0.53
+- id: 9
+  name: Activity_09
+  duration: 6.5
+  ko_probability: 0.57
+- id: 10
+  name: Activity_10
+  duration: 4.4
+  ko_probability: 0.64
+- id: 11
+  name: Activity_11
+  duration: 7.2
+  ko_probability: 0.77
+- id: 12
+  name: Activity_12
+  duration: 3.0
+  ko_probability: 0.5
+precedence:
+- - 0
+  - 1
+- - 1
+  - 2
+- - 2
+  - 3
+- - 4
+  - 5
+- - 5
+  - 6
+- - 6
+  - 7
+- - 8
+  - 9
+- - 9
+  - 10
+- - 10
+  - 11

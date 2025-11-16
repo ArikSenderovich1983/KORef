@@ -10,7 +10,7 @@ from koref_utils import (
 from koref_domain import create_model, solve
 
 # Test with one small instance
-instance_path = "problems/small/chain_3.yaml"
+instance_path = "problems/non_empty/small/chain/chain_3.yaml"
 
 print(f"Testing with: {instance_path}")
 print("=" * 60)

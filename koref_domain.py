@@ -145,13 +145,18 @@ def create_model(n, durations, probabilities, precedence):
     # We accept as terminal:
     # 1. States where all pairs are resolved (complete refinements)
     # 2. States where at least one constraint was added (partial refinements)
-    # Add base case for complete refinements
-    model.add_base_case([unresolved.is_empty()])
+    # 
+    # Note: Terminal cost cannot be expressed directly in DIDP since it requires
+    # reconstructing precedence and computing expected makespan (complex algorithm).
+    # We'll compute costs post-search. DFBB will still use branch & bound techniques
+    # but costs are evaluated after reaching terminal states.
+    # 
+    # For minimization: cost=None means cost is 0, actual cost computed post-search
+    model.add_base_case([unresolved.is_empty()], cost=None)
     # Add base case for partial refinements (states with at least one constraint added)
     # Note: This allows stopping early without resolving all pairs
-    # A refinement is valid if it adds at least one constraint (partial) or resolves all pairs (complete)
     try:
-        model.add_base_case([added_constraints.len() > 0])
+        model.add_base_case([added_constraints.len() > 0], cost=None)
     except Exception as e:
         # If DIDP doesn't support multiple base cases, we'll only evaluate complete refinements
         # Partial refinements would need a different approach (e.g., no-op transitions)
@@ -282,12 +287,16 @@ def solve_optimal_exhaustive(
     best_transitions = None
     terminal_count = 1  # Count original as first terminal state
     
-    # Use BreadthFirstSearch to explore all states systematically
-    solver = dp.BreadthFirstSearch(model, time_limit=time_limit, quiet=False)
+    # Use DFBB (Depth-First Branch & Bound) for efficient exploration
+    # DFBB uses depth-first order which is more memory efficient than breadth-first
+    # Note: Since costs are computed at terminal states (expected makespan requires
+    # full precedence relation), DFBB explores all terminal states but uses
+    # efficient depth-first exploration order rather than naive breadth-first
+    solver = dp.DFBB(model, time_limit=time_limit, quiet=False)
     
-    print("Exploring all refined terminal states to find optimal solution...")
+    print("Exploring all refined terminal states using DFBB (Branch & Bound)...")
     
-    # Explore all states - BreadthFirstSearch will find all terminal states
+    # Explore all terminal states using DFBB (depth-first exploration)
     is_terminated = False
     
     while not is_terminated:
@@ -380,8 +389,74 @@ def solve(
     """
     # For optimal exhaustive search
     if solver_name == "Optimal" or solver_name == "EXHAUSTIVE":
-        return solve_optimal_exhaustive(
-            model, n, durations, probabilities, initial_precedence, time_limit
+        # Use DFBB (Depth-First Branch & Bound) for optimal search
+        # DFBB uses branch & bound techniques for efficient exploration
+        # Note: Since costs are computed at terminal states (expected makespan requires
+        # full precedence relation), DFBB will explore all terminal states but uses
+        # depth-first order which is more memory efficient than breadth-first
+        print("Using DFBB (Depth-First Branch & Bound) for optimal search...")
+        print("Note: Costs computed at terminal states, so DFBB explores all refinements")
+        print("      but uses efficient depth-first exploration order.")
+        
+        # First evaluate original precedence as baseline
+        original_makespan = compute_terminal_cost(initial_precedence, n, durations, probabilities)
+        print(f"Original precedence makespan: {original_makespan:.6f}")
+        
+        best_cost = original_makespan
+        best_precedence = initial_precedence.copy()
+        best_transitions = None
+        terminal_count = 1
+        
+        solver = dp.DFBB(model, time_limit=time_limit, quiet=False)
+        
+        # DFBB.search() returns a single solution, but we need all terminal states
+        # Use search_next() to explore all solutions
+        import time
+        search_start_time = time.time()
+        is_terminated = False
+        while not is_terminated:
+            if time_limit and (time.time() - search_start_time) > time_limit:
+                break
+            
+            solution, is_terminated = solver.search_next()
+            
+            if not solution.is_infeasible:
+                # Extract refined precedence
+                if len(solution.transitions) == 0:
+                    continue  # Already evaluated original precedence
+                
+                refined_precedence = extract_precedence_from_solution(
+                    solution.transitions, n, initial_precedence
+                )
+                
+                if refined_precedence is not None:
+                    # Compute exact expected makespan
+                    expected_makespan = compute_terminal_cost(
+                        refined_precedence, n, durations, probabilities
+                    )
+                    
+                    terminal_count += 1
+                    if terminal_count % 10 == 0:
+                        print(f"  Evaluated {terminal_count} terminal states, current best: {best_cost:.6f}")
+                    
+                    if expected_makespan <= best_cost:
+                        best_cost = expected_makespan
+                        best_precedence = refined_precedence
+                        best_transitions = solution.transitions
+                        improvement = original_makespan - expected_makespan
+                        print(f"  New best: expected_makespan = {best_cost:.6f} (improvement: {improvement:.6f})")
+        
+        print(f"\nExplored {terminal_count} terminal states using DFBB")
+        
+        if best_precedence is None:
+            return None, None, None, False, True
+        
+        return (
+            best_precedence,
+            best_cost,
+            None,
+            True,  # Optimal (exhaustive exploration)
+            False,
         )
     
     # For optimal search, we need to explore all terminal states

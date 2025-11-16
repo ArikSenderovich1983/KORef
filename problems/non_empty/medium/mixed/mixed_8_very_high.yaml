@@ -1,0 +1,50 @@
+name: mixed_8_very_high
+description: Mixed structure with 8 activities (very_high risk)
+category: mixed
+difficulty: medium
+metadata:
+  n_activities: 8
+  n_precedence: 3
+  graph_structure: mixed
+  duration_distribution: varied
+  ko_probability_distribution: very_high_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 4.6
+  ko_probability: 0.68
+- id: 1
+  name: Activity_01
+  duration: 3.4
+  ko_probability: 0.65
+- id: 2
+  name: Activity_02
+  duration: 7.4
+  ko_probability: 0.64
+- id: 3
+  name: Activity_03
+  duration: 2.9
+  ko_probability: 0.66
+- id: 4
+  name: Activity_04
+  duration: 2.9
+  ko_probability: 0.64
+- id: 5
+  name: Activity_05
+  duration: 4.5
+  ko_probability: 0.65
+- id: 6
+  name: Activity_06
+  duration: 4.8
+  ko_probability: 0.63
+- id: 7
+  name: Activity_07
+  duration: 7.0
+  ko_probability: 0.66
+precedence:
+- - 0
+  - 1
+- - 2
+  - 3
+- - 4
+  - 5

@@ -1,0 +1,61 @@
+name: parallel_12
+description: Parallel structure with 12 independent activities (knockout-heavy)
+category: parallel
+difficulty: large
+metadata:
+  n_activities: 12
+  n_precedence: 0
+  n_unresolved_pairs: 66
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: high_risk_heavy
+activities:
+- id: 0
+  name: Task_00
+  duration: 7.7
+  ko_probability: 0.6
+- id: 1
+  name: Task_01
+  duration: 2.6
+  ko_probability: 0.53
+- id: 2
+  name: Task_02
+  duration: 7.1
+  ko_probability: 0.68
+- id: 3
+  name: Task_03
+  duration: 6.8
+  ko_probability: 0.72
+- id: 4
+  name: Task_04
+  duration: 5.2
+  ko_probability: 0.79
+- id: 5
+  name: Task_05
+  duration: 4.3
+  ko_probability: 0.67
+- id: 6
+  name: Task_06
+  duration: 7.0
+  ko_probability: 0.69
+- id: 7
+  name: Task_07
+  duration: 7.2
+  ko_probability: 0.67
+- id: 8
+  name: Task_08
+  duration: 6.2
+  ko_probability: 0.51
+- id: 9
+  name: Task_09
+  duration: 3.4
+  ko_probability: 0.59
+- id: 10
+  name: Task_10
+  duration: 2.5
+  ko_probability: 0.57
+- id: 11
+  name: Task_11
+  duration: 2.6
+  ko_probability: 0.58
+precedence: []

@@ -85,8 +85,11 @@ def main():
     """Run benchmarks on all problem instances and generate a table."""
     # Find all YAML problem files
     problem_files = []
-    for pattern in ["problems/small/*.yaml", "problems/medium/*.yaml", "problems/large/*.yaml"]:
-        problem_files.extend(glob.glob(pattern))
+    # Find all non-empty constraint problems
+    for size in ["small", "medium", "large"]:
+        for struct_type in ["chain", "parallel", "mixed", "dag"]:
+            pattern = f"problems/non_empty/{size}/{struct_type}/*.yaml"
+            problem_files.extend(glob.glob(pattern))
     
     problem_files.sort()
     

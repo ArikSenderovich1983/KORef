@@ -1,0 +1,51 @@
+name: chain_9_very_high
+description: Chain structure with 9 activities, very_high risk, EMPTY precedence
+category: chain
+difficulty: medium
+risk_level: very_high
+metadata:
+  n_activities: 9
+  n_precedence: 0
+  n_unresolved_pairs: 36
+  graph_structure: chain
+  duration_distribution: varied
+  ko_probability_distribution: very_high
+  precedence_type: empty
+activities:
+- id: 0
+  name: Step_00
+  duration: 5.2
+  ko_probability: 0.88
+- id: 1
+  name: Step_01
+  duration: 7.0
+  ko_probability: 0.75
+- id: 2
+  name: Step_02
+  duration: 6.9
+  ko_probability: 0.8
+- id: 3
+  name: Step_03
+  duration: 6.8
+  ko_probability: 0.85
+- id: 4
+  name: Step_04
+  duration: 4.0
+  ko_probability: 0.72
+- id: 5
+  name: Step_05
+  duration: 7.8
+  ko_probability: 0.73
+- id: 6
+  name: Step_06
+  duration: 7.8
+  ko_probability: 0.87
+- id: 7
+  name: Step_07
+  duration: 6.3
+  ko_probability: 0.9
+- id: 8
+  name: Step_08
+  duration: 7.8
+  ko_probability: 0.86
+precedence: []

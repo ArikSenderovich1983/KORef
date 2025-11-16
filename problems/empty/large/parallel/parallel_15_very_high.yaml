@@ -1,0 +1,75 @@
+name: parallel_15_very_high
+description: Parallel structure with 15 activities, very_high risk, EMPTY precedence
+category: parallel
+difficulty: large
+risk_level: very_high
+metadata:
+  n_activities: 15
+  n_precedence: 0
+  n_unresolved_pairs: 105
+  graph_structure: parallel
+  duration_distribution: varied
+  ko_probability_distribution: very_high
+  precedence_type: empty
+activities:
+- id: 0
+  name: Task_00
+  duration: 7.7
+  ko_probability: 0.78
+- id: 1
+  name: Task_01
+  duration: 6.6
+  ko_probability: 0.71
+- id: 2
+  name: Task_02
+  duration: 3.6
+  ko_probability: 0.9
+- id: 3
+  name: Task_03
+  duration: 4.9
+  ko_probability: 0.77
+- id: 4
+  name: Task_04
+  duration: 7.6
+  ko_probability: 0.79
+- id: 5
+  name: Task_05
+  duration: 6.1
+  ko_probability: 0.83
+- id: 6
+  name: Task_06
+  duration: 2.5
+  ko_probability: 0.82
+- id: 7
+  name: Task_07
+  duration: 6.8
+  ko_probability: 0.84
+- id: 8
+  name: Task_08
+  duration: 2.5
+  ko_probability: 0.73
+- id: 9
+  name: Task_09
+  duration: 6.3
+  ko_probability: 0.83
+- id: 10
+  name: Task_10
+  duration: 6.4
+  ko_probability: 0.76
+- id: 11
+  name: Task_11
+  duration: 2.6
+  ko_probability: 0.7
+- id: 12
+  name: Task_12
+  duration: 3.8
+  ko_probability: 0.77
+- id: 13
+  name: Task_13
+  duration: 3.6
+  ko_probability: 0.73
+- id: 14
+  name: Task_14
+  duration: 3.1
+  ko_probability: 0.79
+precedence: []

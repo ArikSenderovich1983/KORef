@@ -1,0 +1,24 @@
+name: dag_3_very_high
+description: Dag structure with 3 activities (very_high risk)
+category: dag
+difficulty: small
+metadata:
+  n_activities: 3
+  n_precedence: 0
+  graph_structure: dag
+  duration_distribution: varied
+  ko_probability_distribution: very_high_risk
+activities:
+- id: 0
+  name: Activity_00
+  duration: 7.2
+  ko_probability: 0.45
+- id: 1
+  name: Activity_01
+  duration: 6.8
+  ko_probability: 0.49
+- id: 2
+  name: Activity_02
+  duration: 2.6
+  ko_probability: 0.48
+precedence: []
