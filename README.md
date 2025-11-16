@@ -30,17 +30,25 @@ Problems are organized in the following directory structure:
 ```
 problems/
 ├── empty/              # Problems with empty initial precedence constraints
-│   ├── small/          # 3-5 activities
-│   │   ├── chain/      # Chain structures
-│   │   ├── parallel/   # Parallel structures
-│   │   ├── mixed/      # Mixed structures
-│   │   └── dag/        # DAG structures
-│   ├── medium/         # 6-10 activities
-│   └── large/          # 11-15 activities
+│   ├── small/          # 3-5 activities (all files directly here)
+│   ├── medium/         # 6-10 activities (all files directly here)
+│   └── large/          # 11-15 activities (all files directly here)
 └── non_empty/          # Problems with existing precedence constraints
-    ├── small/
-    ├── medium/
-    └── large/
+    ├── small/          # 3-5 activities
+    │   ├── chain/      # Chain structures
+    │   ├── parallel/   # Parallel structures
+    │   ├── mixed/      # Mixed structures
+    │   └── dag/        # DAG structures
+    ├── medium/         # 6-10 activities
+    │   ├── chain/
+    │   ├── parallel/
+    │   ├── mixed/
+    │   └── dag/
+    └── large/          # 11-15 activities
+        ├── chain/
+        ├── parallel/
+        ├── mixed/
+        └── dag/
 ```
 
 Each problem file is in YAML format and includes:

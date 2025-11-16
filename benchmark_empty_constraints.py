@@ -23,15 +23,14 @@ def find_all_empty_constraint_problems():
     problems = []
     
     for size_category in ['small', 'medium', 'large']:
-        for struct_type in ['chain', 'parallel', 'mixed', 'dag']:
-            category_dir = base_dir / size_category / struct_type
-            if category_dir.exists():
-                for yaml_file in sorted(category_dir.glob("*.yaml")):
-                    problems.append({
-                        'path': str(yaml_file),
-                        'category': size_category,
-                        'name': yaml_file.stem
-                    })
+        category_dir = base_dir / size_category
+        if category_dir.exists():
+            for yaml_file in sorted(category_dir.glob("*.yaml")):
+                problems.append({
+                    'path': str(yaml_file),
+                    'category': size_category,
+                    'name': yaml_file.stem
+                })
     
     return problems
 

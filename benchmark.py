@@ -40,9 +40,12 @@ def find_all_problems(constraint_type="all"):
             continue
             
         for size in ["small", "medium", "large"]:
-            for struct_type in ["chain", "parallel", "mixed", "dag"]:
-                pattern = base_dir / size / struct_type / "*.yaml"
+            if ct == "empty":
+                # Empty problems: no structure subdirectories (all have empty precedence)
+                pattern = base_dir / size / "*.yaml"
                 for yaml_file in sorted(glob.glob(str(pattern))):
+                    # Extract structure type from filename (e.g., chain_3_high.yaml -> chain)
+                    struct_type = Path(yaml_file).stem.split('_')[0] if '_' in Path(yaml_file).stem else "unknown"
                     problems.append({
                         'path': yaml_file,
                         'constraint_type': ct,
@@ -50,6 +53,18 @@ def find_all_problems(constraint_type="all"):
                         'struct_type': struct_type,
                         'name': Path(yaml_file).stem
                     })
+            else:
+                # Non-empty problems: organized by structure type
+                for struct_type in ["chain", "parallel", "mixed", "dag"]:
+                    pattern = base_dir / size / struct_type / "*.yaml"
+                    for yaml_file in sorted(glob.glob(str(pattern))):
+                        problems.append({
+                            'path': yaml_file,
+                            'constraint_type': ct,
+                            'size': size,
+                            'struct_type': struct_type,
+                            'name': Path(yaml_file).stem
+                        })
     
     return problems
 

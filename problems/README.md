@@ -9,18 +9,28 @@ Problems are organized by constraint type, size, and structure:
 ```
 problems/
 ├── empty/              # Problems with empty initial precedence constraints
-│   ├── small/          # 3-5 activities
-│   │   ├── chain/      # Chain structures (linear sequences)
-│   │   ├── parallel/   # Parallel structures (minimal constraints)
-│   │   ├── mixed/      # Mixed structures (combination of chains and parallel)
-│   │   └── dag/        # DAG structures (directed acyclic graphs)
-│   ├── medium/         # 6-10 activities
-│   └── large/          # 11-15 activities
+│   ├── small/          # 3-5 activities (all YAML files directly here)
+│   ├── medium/         # 6-10 activities (all YAML files directly here)
+│   └── large/          # 11-15 activities (all YAML files directly here)
 └── non_empty/          # Problems with existing precedence constraints
     ├── small/          # 3-5 activities
+    │   ├── chain/      # Chain structures (linear sequences)
+    │   ├── parallel/   # Parallel structures (minimal constraints)
+    │   ├── mixed/      # Mixed structures (combination of chains and parallel)
+    │   └── dag/        # DAG structures (directed acyclic graphs)
     ├── medium/         # 6-10 activities
+    │   ├── chain/
+    │   ├── parallel/
+    │   ├── mixed/
+    │   └── dag/
     └── large/          # 11-15 activities
+        ├── chain/
+        ├── parallel/
+        ├── mixed/
+        └── dag/
 ```
+
+**Note:** Empty constraint problems don't have structure subdirectories because they all start with `precedence: []` (no constraints). The structure labels in filenames (e.g., `chain_3_high.yaml`) are just naming conventions and don't reflect actual precedence structure.
 
 ## Instance Naming Convention
 
@@ -62,6 +72,7 @@ Each instance specifies:
 - All activities can execute in parallel initially
 - Refinement adds precedence constraints from scratch
 - Useful for testing when parallel execution is optimal vs. when ordering helps
+- **Note:** These problems are organized only by size (small/medium/large), not by structure type, since they have no precedence structure initially
 
 ### Non-Empty Constraint Problems
 - Start with **partial precedence constraints**
