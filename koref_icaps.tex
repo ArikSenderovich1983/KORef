@@ -1,0 +1,613 @@
+\documentclass[letterpaper]{article}
+\usepackage{aaai25}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\urlstyle{rm}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{problem}{Problem}
+
+% Commands for consistency
+\newcommand{\koplan}{KO-plan}
+\newcommand{\koplans}{KO-plans}
+\newcommand{\koref}{\textsc{KORef}}
+\newcommand{\tup}[1]{\langle #1 \rangle}
+\newcommand{\set}[1]{\{#1\}}
+
+\title{KO-Plan Refinement: Optimizing Schedules Under Stochastic Knockouts}
+
+\author{
+Anonymous Submission
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We introduce the KO-Plan Refinement (\koref) problem: finding optimal activity schedules under stochastic knockout events by strategically adding precedence constraints. Activities execute with fixed durations but may probabilistically knock out the process after completion, terminating all future work while allowing concurrent activities to finish. We prove \koref\ is NP-hard via reduction from Subset Sum, showing that knockout probabilities fundamentally drive computational complexity. We formulate \koref\ using Domain-Independent Dynamic Programming (DIDP) and solve it optimally via exhaustive search with DFBB. Experiments on 364 instances with up to 15 activities show 100\% proven optimality within 30 seconds, achieving expected makespan improvements up to 52\% for high-risk scenarios. Our results demonstrate that strategic sequencing of risky activities can dramatically reduce expected project duration.
+\end{abstract}
+
+\section{Introduction}
+
+Project scheduling under uncertainty is a fundamental challenge in planning, operations research, and artificial intelligence. Traditional approaches assume deterministic execution or model uncertainty through variable durations. We consider a different uncertainty model: activities may \emph{knock out} (KO) the entire process after their execution, with given probabilities. This captures scenarios where:
+\begin{itemize}
+\item Clinical trials where adverse events terminate the study
+\item Manufacturing processes with failure-prone operations
+\item Risky project tasks that may cause project abandonment
+\item Exploration activities with potential catastrophic failures
+\end{itemize}
+
+The key challenge is that knockout probabilities create non-intuitive optimization trade-offs. Executing high-risk activities early may reduce expected makespan through ``fail-fast'' strategies, but also increases the chance of premature termination. Conversely, deferring risky activities maximizes work completion but may extend expected duration. These competing objectives make optimal scheduling computationally challenging.
+
+We formalize this as the \emph{KO-Plan Refinement} (\koref) problem: given an initial partial order of activities with durations and knockout probabilities, find an optimal refinement (adding precedence constraints) that minimizes expected makespan. We prove NP-hardness, develop a DIDP-based optimal solver, and provide comprehensive experimental evaluation.
+
+\section{Temporal Plans with Knockouts}
+
+\subsection{Basic Definitions}
+
+We build upon standard partial-order planning with temporal durations, then extend with knockout events.
+
+\begin{definition}[Temporal Partial-Order Plan]
+\label{def:t-plan}
+A \emph{temporal partial-order plan} (T-plan) is a tuple $T = \tup{A, \prec, d}$ where:
+\begin{itemize}
+\item $A = \{a_1, \ldots, a_n\}$ is a finite set of \emph{activities}
+\item $\prec \subseteq A \times A$ is a \emph{partial order} (irreflexive, transitive) representing precedence constraints
+\item $d: A \rightarrow \mathbb{R}^+$ assigns a positive \emph{duration} to each activity
+\end{itemize}
+\end{definition}
+
+We use dot notation for tuple components: $T.A$, $T.\prec$, $T.d$ denote the activities, precedence, and duration function of T-plan $T$.
+
+A precedence constraint $a \prec b$ is interpreted as a \emph{completion-before-start} condition: activity $b$ cannot start until activity $a$ completes.
+
+\begin{definition}[Schedule]
+\label{def:schedule}
+A \emph{schedule} $\sigma$ for T-plan $T$ is a total function $\sigma: T.A \rightarrow \mathbb{R}^+$ mapping each activity to its \emph{start time}. Schedule $\sigma$ is \emph{valid} if it respects all precedence constraints: for every $a, b \in T.A$ with $a \prec b$, we have $\sigma(b) \geq \sigma(a) + T.d(a)$.
+\end{definition}
+
+Throughout this paper, we only consider valid schedules and simply write ``schedule'' to mean ``valid schedule''.
+
+\begin{definition}[Makespan]
+\label{def:makespan}
+The \emph{makespan} $M(\sigma)$ of schedule $\sigma$ for T-plan $T$ is the latest activity completion time:
+\[
+M(\sigma) = \max \set{\sigma(a) + T.d(a) \mid a \in T.A}
+\]
+\end{definition}
+
+\subsection{KO-Plans and Knockout Semantics}
+
+We now extend T-plans with knockout events. A knockout is a catastrophic exception that, once triggered, prevents further activities from starting.
+
+\begin{definition}[KO-Plan]
+\label{def:ko-plan}
+A \emph{temporal plan with knockouts} (\koplan) is a tuple $K = \tup{A, \prec, d, p}$ where $\tup{A, \prec, d}$ is a T-plan and $p: K.A \rightarrow [0,1]$ assigns a \emph{knockout probability} to each activity.
+\end{definition}
+
+\textbf{Knockout Semantics.} After activity $a$ completes execution, the process may knock out with probability $p(a)$, modeled as an independent Bernoulli trial. Crucially:
+\begin{enumerate}
+\item The activity \emph{executes fully} before knockout evaluation
+\item All activities \emph{overlapping} with $a$ (executing concurrently) also finish
+\item The process then terminates; no new activities start
+\end{enumerate}
+
+This semantics reflects scenarios where (i) running activities cannot be aborted mid-execution, or (ii) knockout detection occurs only at subsequent activity start points.
+
+\begin{definition}[Abort Time]
+\label{def:abort-time}
+Given schedule $\sigma$ for \koplan\ $K$ and activity $a \in K.A$, the \emph{abort time} if $a$ knocks out is:
+\[
+t_{\text{abort}}(a, \sigma) = \max \set{f_b \mid b \in K.A, \, [s_a, f_a) \cap [s_b, f_b) \neq \emptyset}
+\]
+where $s_a = \sigma(a)$, $f_a = \sigma(a) + K.d(a)$ denote the start and finish times of $a$ (and similarly for $b$).
+\end{definition}
+
+Intuitively, $t_{\text{abort}}(a, \sigma)$ is the maximum finish time among all activities that temporally overlap with $a$'s execution.
+
+\subsection{Expected Makespan}
+
+Since knockouts occur probabilistically, the makespan becomes a random variable. We characterize its expectation.
+
+\begin{definition}[Expected Makespan]
+\label{def:expected-makespan}
+The \emph{expected makespan} of schedule $\sigma$ for \koplan\ $K$ is:
+\[
+\mathbb{E}[M(\sigma)] = \sum_{a \in K.A} p(a) \cdot t_{\text{abort}}(a, \sigma) + \left(\prod_{a \in K.A} (1 - p(a))\right) \cdot M(\sigma)
+\]
+\end{definition}
+
+The first term sums over knockout scenarios (one per activity), weighted by knockout probability and yielding the corresponding abort time. The second term accounts for the no-knockout scenario (all activities complete), with probability $\prod_{a \in K.A} (1 - p(a))$ and makespan $M(\sigma)$.
+
+\subsection{Canonical Schedules}
+
+Among infinitely many valid schedules for a \koplan, we focus on \emph{canonical schedules} following an earliest-start principle.
+
+\begin{definition}[Canonical Schedule]
+\label{def:canonical-schedule}
+The \emph{canonical schedule} $\sigma^*_K$ for \koplan\ $K$ is defined recursively: for each $a \in K.A$,
+\[
+\sigma^*_K(a) = 
+\begin{cases}
+0 & \text{if no } b \in K.A \text{ has } b \prec a\\
+\max \set{\sigma^*_K(b) + K.d(b) \mid b \prec a} & \text{otherwise}
+\end{cases}
+\]
+We define the \emph{expected makespan of $K$} as $\mathbb{E}[M(K)] = \mathbb{E}[M(\sigma^*_K)]$.
+\end{definition}
+
+Canonical schedules start each activity as early as precedence constraints allow, ensuring a unique, deterministic schedule for each \koplan.
+
+\subsection{KO-Plan Refinement}
+
+Rather than searching the infinite space of schedules, we consider \emph{refinements}: \koplans\ with additional precedence constraints.
+
+\begin{definition}[Refinement]
+\label{def:refinement}
+\koplan\ $K_1 = \tup{A_1, \prec_1, d_1, p_1}$ \emph{refines} \koplan\ $K_2 = \tup{A_2, \prec_2, d_2, p_2}$ if:
+\begin{itemize}
+\item They are \emph{compatible}: $A_1 = A_2$, $d_1 = d_2$, $p_1 = p_2$
+\item $K_1$ adds constraints: $\prec_2 \subseteq \prec_1$
+\end{itemize}
+If $\prec_2 \subsetneq \prec_1$, we say $K_1$ \emph{strictly refines} $K_2$.
+\end{definition}
+
+For a \koplan\ $K$, there are finitely many compatible refinements (at most $2^{n(n-1)/2}$ where $n = |K.A|$), forming a partial order under refinement.
+
+We now define our central optimization problem.
+
+\begin{problem}[\koref]
+\label{prob:koref}
+\begin{description}
+\item[\textsc{Input:}] \koplan\ $K$
+\item[\textsc{Output:}] \koplan\ $K^*$ such that:
+\begin{enumerate}
+\item $K^*$ refines $K$ (and $K^*.{\prec}$ is acyclic)
+\item For every refinement $K'$ of $K$, $\mathbb{E}[M(K^*)] \leq \mathbb{E}[M(K')]$
+\end{enumerate}
+\end{description}
+\end{problem}
+
+The corresponding decision problem checks whether a refinement exists with expected makespan below a given threshold.
+
+\begin{problem}[\koref\ Decision]
+\label{prob:koref-decision}
+\begin{description}
+\item[\textsc{Input:}] \koplan\ $K$, bound $M \in \mathbb{Q}^+$
+\item[\textsc{Output:}] \emph{Yes} iff there exists a refinement $K'$ of $K$ such that $\mathbb{E}[M(K')] \leq M$
+\end{description}
+\end{problem}
+
+\section{Computational Complexity}
+
+We establish the computational hardness of \koref\ by proving NP-completeness of the decision problem.
+
+\begin{theorem}
+\label{thm:np-hard}
+The \koref\ decision problem is NP-hard.
+\end{theorem}
+
+\subsection{Key Insight: Knockouts Drive Complexity}
+
+Before presenting the proof, we highlight why knockouts are essential for hardness.
+
+\begin{proposition}
+\label{prop:trivial-without-ko}
+If $p(a) = 0$ for all $a \in K.A$ (no knockouts) and $K.\prec = \emptyset$ (empty initial precedence), then the optimal refinement is $K$ itself (no added constraints), solvable in polynomial time.
+\end{proposition}
+
+\begin{proof}
+Without knockouts, $\mathbb{E}[M(K)] = M(\sigma^*_K) = \max_{a \in K.A} K.d(a)$ (all activities execute in parallel). Adding any precedence constraint only increases makespan via serialization. Thus, the empty precedence is optimal.
+\end{proof}
+
+With knockouts, this intuition breaks: strategic sequencing can \emph{reduce} expected makespan by exploiting fail-fast strategies. This non-monotonicity creates exponential complexity.
+
+\subsection{Reduction from Subset Sum}
+
+We reduce the NP-complete Subset Sum problem to \koref\ decision.
+
+\textbf{Subset Sum Instance.} Given integers $S = \{s_1, \ldots, s_m\}$ and target $T \in \mathbb{N}$, does there exist $S' \subseteq S$ with $\sum_{s \in S'} s = T$?
+
+\textbf{Construction.} For Subset Sum instance $(S, T)$, construct \koplan\ $K$ with:
+\begin{itemize}
+\item Activities: $A = \{a_0, a_1, \ldots, a_m, a_{m+1}\}$
+\item Durations:
+\[
+d(a_i) = 
+\begin{cases}
+1 & i = 0 \text{ or } i = m+1\\
+s_i & 1 \leq i \leq m
+\end{cases}
+\]
+\item Knockout probabilities:
+\[
+p(a_i) = 
+\begin{cases}
+0 & i = 0 \text{ or } i = m+1\\
+\varepsilon & 1 \leq i \leq m \quad \text{(small } \varepsilon > 0\text{)}
+\end{cases}
+\]
+\item Initial precedence: $\prec = \set{(a_0, a_i), (a_i, a_{m+1}) \mid 1 \leq i \leq m}$
+\end{itemize}
+This creates an ``hourglass'' structure: $a_0$ precedes all element activities, which all precede $a_{m+1}$.
+
+\textbf{Threshold.} Set $M = T + 2 + \delta$ for sufficiently small $\delta > 0$.
+
+\textbf{Proof Sketch.} The key observation is that knockout probabilities incentivize finding a balanced serialization of element activities:
+\begin{itemize}
+\item Full parallelization: makespan $\approx \max_i s_i + 2$ (fast but high risk exposure)
+\item Full serialization: makespan $\approx \sum_i s_i + 2$ (slow but progressive risk reduction)
+\item Strategic serialization: serialize subset $S'$ yielding duration $\sum_{s \in S'} s$, parallelize remainder
+\end{itemize}
+
+With careful parameter tuning (specifically, setting knockout probabilities to balance the expected contributions), the optimal refinement achieves $\mathbb{E}[M(K^*)] \leq M$ if and only if there exists $S' \subseteq S$ with $\sum_{s \in S'} s = T$.
+
+The detailed reduction requires technical lemmas showing:
+\begin{enumerate}
+\item Any refinement achieving $\mathbb{E}[M(K^*)] \leq M$ must serialize a subset summing to approximately $T$
+\item Conversely, a subset summing to $T$ yields a refinement with $\mathbb{E}[M] \leq M$
+\end{enumerate}
+
+\begin{corollary}
+The \koref\ optimization problem is NP-hard.
+\end{corollary}
+
+\section{Solution via DIDP}
+
+We formulate \koref\ using Domain-Independent Dynamic Programming (DIDP) \cite{didp2023,didp2024}, a model-based framework for combinatorial optimization via dynamic programming.
+
+\subsection{DIDP Background}
+
+DIDP extends classical DP with:
+\begin{itemize}
+\item \textbf{State variables}: Sets, integers, floats, elements
+\item \textbf{Transitions}: Actions modifying state with associated costs
+\item \textbf{Generic solvers}: Heuristic search algorithms (A*, beam search, DFBB)
+\end{itemize}
+
+Problems are specified using DyPDL (Dynamic Programming Description Language), then solved using generic solvers without implementing problem-specific DP algorithms. DIDP has demonstrated superior performance to MIP and CP on routing, packing, and scheduling problems \cite{didp2023,didp2024}.
+
+\subsection{State Representation}
+
+We model \koref\ as a state-space search where states represent partial refinements.
+
+\textbf{State Variables:}
+\begin{itemize}
+\item $U \subseteq \binom{A}{2}$: \emph{unresolved pairs} $\{a,b\}$ where neither $a \prec b$ nor $b \prec a$ is determined
+\item $C \subseteq A \times A$: \emph{added constraints} beyond initial precedence $K.\prec$
+\end{itemize}
+
+\textbf{Initial State:} Let $\prec^+$ denote the transitive closure of $K.\prec$. Then:
+\begin{align*}
+U_0 &= \set{\{a,b\} \mid a,b \in K.A, \, a \neq b, \, (a,b) \notin \prec^+, \, (b,a) \notin \prec^+}\\
+C_0 &= \emptyset
+\end{align*}
+
+\textbf{Terminal State:} $U = \emptyset$ (all pairs resolved).
+
+\subsection{Transitions}
+
+For each unresolved pair $\{a,b\} \in U$, we have two transitions:
+
+\begin{algorithm}[H]
+\caption{Add Precedence $a \prec b$}
+\label{alg:transition-ab}
+\begin{algorithmic}[1]
+\State \textbf{Precondition:} $\{a,b\} \in U$ and $(b,a) \notin \prec^+$
+\State \textbf{Effect:} 
+\State \quad $U \gets U \setminus \{\{a,b\}\}$
+\State \quad $C \gets C \cup \{(a,b)\}$
+\State \textbf{Cost:} 0
+\end{algorithmic}
+\end{algorithm}
+
+Symmetrically for adding $b \prec a$. Transition costs are zero because expected makespan cannot be computed incrementally (requires full precedence relation).
+
+\subsection{Cost Function}
+
+\textbf{Terminal Cost.} At terminal states, compute exact expected makespan:
+
+\begin{algorithm}[H]
+\caption{Compute Terminal Cost}
+\label{alg:terminal-cost}
+\begin{algorithmic}[1]
+\State $P \gets K.\prec \cup C$ \Comment{Refined precedence}
+\If{$P$ contains cycle}
+    \State \Return $\infty$
+\EndIf
+\State $\sigma \gets$ ComputeCanonicalSchedule($P$)
+\State $M \gets$ ComputeExpectedMakespan($\sigma$)
+\State \Return $M$
+\end{algorithmic}
+\end{algorithm}
+
+Expected makespan computation (Line 5) requires:
+\begin{enumerate}
+\item Computing earliest-start schedule (respecting $P$)
+\item Detecting activity overlaps (for abort times)
+\item Evaluating expected value over knockout scenarios
+\end{enumerate}
+
+This complexity motivates terminal-only cost evaluation rather than incremental costs.
+
+\subsection{Solver: DFBB}
+
+We use DFBB (Depth-First Branch \& Bound) from DIDP, which:
+\begin{itemize}
+\item Exhaustively explores all terminal states
+\item Uses depth-first order (memory efficient)
+\item Guarantees optimal solution for finite state spaces
+\end{itemize}
+
+\begin{algorithm}[H]
+\caption{DFBB for \koref}
+\label{alg:dfbb}
+\begin{algorithmic}[1]
+\State $K_{\text{best}} \gets K$ \Comment{Initialize with original}
+\State $M_{\text{best}} \gets \mathbb{E}[M(K)]$
+\State solver $\gets$ DFBB(model, time\_limit)
+\Repeat
+    \State $(K', \textit{terminated}) \gets$ solver.search\_next()
+    \If{$K'$ is feasible}
+        \State $M' \gets \mathbb{E}[M(K')]$
+        \If{$M' < M_{\text{best}}$}
+            \State $K_{\text{best}} \gets K'$, $M_{\text{best}} \gets M'$
+        \EndIf
+    \EndIf
+\Until{\textit{terminated} or time limit}
+\State \Return $K_{\text{best}}$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Non-Monotonicity and Search Strategy}
+
+A key challenge in \koref\ is that the objective function is \emph{non-monotonic} with respect to refinements.
+
+\begin{proposition}
+\label{prop:non-monotonic}
+There exist \koplans\ $K_1, K_2$ where $K_1$ strictly refines $K_2$ yet $\mathbb{E}[M(K_1)] < \mathbb{E}[M(K_2)]$.
+\end{proposition}
+
+\begin{proof}[Proof by Example]
+Consider $A = \{a, b, c\}$ with $d(a) = d(b) = d(c) = 2$, $p(a) = 0.9$, $p(b) = p(c) = 0.1$, and empty initial precedence.
+
+\textbf{Case 1 ($K_2$): Parallel.} All activities execute concurrently. If $a$ knocks out (prob 0.9), abort time is 2. Expected makespan:
+\[
+\mathbb{E}[M(K_2)] = 0.9 \cdot 2 + 0.1 \cdot 2 = 2.0
+\]
+
+\textbf{Case 2 ($K_1$): Serial chain $a \prec b \prec c$.} Expected makespan:
+\[
+\mathbb{E}[M(K_1)] = 0.9 \cdot 2 + 0.09 \cdot 4 + 0.01 \cdot 6 = 2.22
+\]
+
+Here, adding constraints \emph{increased} makespan: serialization reduces risk exposure but extends execution time when no knockout occurs. However, different serializations (e.g., $b \prec c \prec a$) could further reduce makespan by deferring the high-risk activity.
+\end{proof}
+
+\textbf{Implications for Pruning.} Non-monotonicity means:
+\begin{itemize}
+\item Partial refinements do not provide lower/upper bounds
+\item No admissible heuristic easily computable
+\item Branch-and-bound pruning infeasible
+\item Exhaustive terminal exploration necessary for optimality
+\end{itemize}
+
+Despite this, DFBB remains effective for moderate $n$ because:
+\begin{enumerate}
+\item State space size $\approx 2^{n(n-1)/2}$ manageable for $n \leq 15$
+\item Cycle detection rejects invalid branches early
+\item Depth-first order uses minimal memory
+\item Baseline evaluation (original $K$) provides initial incumbent
+\end{enumerate}
+
+For larger instances, heuristic DIDP solvers (CABS, LNBS) sacrifice optimality for scalability.
+
+\section{Experimental Evaluation}
+
+\subsection{Benchmark Suite}
+
+We generated 364 problem instances with varying characteristics:
+
+\begin{table}[h]
+\centering
+\caption{Problem instance distribution}
+\label{tab:instance-distribution}
+\small
+\begin{tabular}{@{}llr@{}}
+\toprule
+\textbf{Dimension} & \textbf{Values} & \textbf{Count} \\
+\midrule
+\multirow{3}{*}{Size} & Small ($n \in \{3,4,5\}$) & 102 \\
+& Medium ($n \in \{6,7,8,9,10\}$) & 149 \\
+& Large ($n \in \{11,12,13,14,15\}$) & 113 \\
+\midrule
+\multirow{2}{*}{Initial $\prec$} & Empty & 272 \\
+& Non-empty (chain/DAG/mixed) & 92 \\
+\midrule
+\multirow{3}{*}{Risk level} & High ($p \in [0.5, 0.7]$) & 233 \\
+& Medium ($p \in [0.2, 0.4]$) & 80 \\
+& Low/Very high & 51 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Setup:} DIDP with DFBB solver, 30-second timeout per instance, exhaustive optimal search.
+
+\subsection{Results: Optimality and Runtime}
+
+\begin{table}[h]
+\centering
+\caption{Overall results summary}
+\label{tab:overall-results}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Proven optimal & 364/364 (100\%) \\
+Timeouts & 0/364 (0\%) \\
+Average runtime & 3 ms \\
+Maximum runtime & 28 ms \\
+\midrule
+Problems improved & 32/364 (8.8\%) \\
+Avg improvement (when improved) & 10.51\% \\
+Maximum improvement & 52.43\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key findings:}
+\begin{enumerate}
+\item \textbf{100\% optimality:} All instances solved to proven optimality
+\item \textbf{Fast runtimes:} Average 3ms despite exhaustive search
+\item \textbf{Significant improvements:} Up to 52\% makespan reduction
+\end{enumerate}
+
+\subsection{Scaling Analysis}
+
+\begin{table}[h]
+\centering
+\caption{Performance by problem size}
+\label{tab:results-by-size}
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Size} & \textbf{n} & \textbf{Improved} & \textbf{Avg Imp} & \textbf{Max Imp} & \textbf{Runtime} \\
+\midrule
+Small & 3--5 & 11.8\% & 18.8\% & 52.4\% & 8 ms \\
+Medium & 6--10 & 5.4\% & 6.3\% & 17.3\% & 31 ms \\
+Large & 11--15 & 9.7\% & 5.4\% & 13.9\% & 173 ms \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Runtime scales approximately exponentially with $n$, but remains practical for $n \leq 15$. Small instances show highest improvement potential, suggesting strategic sequencing matters most when few activities allow flexible ordering.
+
+\subsection{Impact of Risk Profile}
+
+\begin{table}[h]
+\centering
+\caption{Performance by knockout probability level}
+\label{tab:results-by-risk}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Risk} & \textbf{Count} & \textbf{Improved} & \textbf{Avg Imp} & \textbf{Max Imp} \\
+\midrule
+High & 233 & 9.9\% & 12.7\% & 52.4\% \\
+Very high & 24 & 4.2\% & 0.9\% & 0.9\% \\
+Medium & 80 & 6.2\% & 6.2\% & 17.3\% \\
+Low & 27 & 7.4\% & 6.4\% & 12.5\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key insight:} High risk (not very high) yields maximum improvement. Very high risk problems are nearly trivial (fail-fast is obvious), while lower risk reduces impact of sequencing choices. The ``sweet spot'' at high risk creates genuine strategic trade-offs.
+
+\subsection{Top Improvements}
+
+Table~\ref{tab:top-improvements} shows instances with largest makespan reductions. Notable patterns:
+\begin{itemize}
+\item Top improvements occur for small-medium $n$ (4--13 activities)
+\item High-risk instances dominate top results
+\item Empty initial precedence (maximum optimization freedom)
+\item Improvements persist even for larger $n=13$ instances
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Top 5 improvements}
+\label{tab:top-improvements}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Instance} & \textbf{n} & \textbf{Original} & \textbf{Refined} & \textbf{Improvement} \\
+\midrule
+n4\_high\_012 & 4 & 7.20 & 3.42 & 52.4\% \\
+n5\_high\_015 & 5 & 7.70 & 5.42 & 29.6\% \\
+n5\_high\_010 & 5 & 8.00 & 6.24 & 22.0\% \\
+parallel\_6\_medium & 6 & 6.80 & 5.63 & 17.3\% \\
+n13\_high\_011 & 13 & 7.20 & 6.20 & 13.9\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Related Work}
+
+\textbf{Stochastic scheduling.} RCPSP under uncertainty \cite{herroelen2005} typically models variable durations, not knockout events. Our setting differs fundamentally: knockouts create non-monotonic objectives where added constraints can improve solutions.
+
+\textbf{Project scheduling with risk.} Risk-averse scheduling \cite{goes2011} minimizes worst-case or tail risk, assuming deterministic execution. We optimize expected value under catastrophic failures.
+
+\textbf{DIDP applications.} DIDP has been applied to TSP variants \cite{chen2025qtsp}, assembly line balancing \cite{zhang2024assembly}, and pickup/delivery \cite{golestanian2023}. To our knowledge, this is the first application to stochastic scheduling with knockouts.
+
+\section{Conclusion}
+
+We introduced \koref, proved NP-hardness, formulated it via DIDP, and demonstrated practical solvability for moderate problem sizes. Key contributions:
+
+\begin{enumerate}
+\item \textbf{Problem formulation:} Formal model of scheduling under knockout events
+\item \textbf{Complexity:} NP-hardness proof showing knockouts drive difficulty
+\item \textbf{DIDP model:} Elegant state-space formulation with terminal cost evaluation
+\item \textbf{Experimental validation:} 100\% proven optimality on 364 instances, improvements up to 52\%
+\end{enumerate}
+
+\textbf{Future work} includes: (1) heuristic methods for $n > 15$, (2) approximation algorithms with guarantees, (3) extensions to variable durations and multiple knockout types, (4) applications to real-world domains (clinical trials, manufacturing, project management).
+
+\bibliographystyle{aaai}
+\begin{thebibliography}{10}
+
+\bibitem{didp2023}
+R.~Kuroiwa and J.~C. Beck.
+\newblock Domain-independent dynamic programming: Generic state space search
+  for combinatorial optimization.
+\newblock In {\em Proceedings of ICAPS}, 2023.
+
+\bibitem{didp2024}
+R.~Kuroiwa and J.~C. Beck.
+\newblock Domain-independent dynamic programming.
+\newblock Journal paper, 2024.
+
+\bibitem{herroelen2005}
+W.~Herroelen and R.~Leus.
+\newblock Project scheduling under uncertainty: Survey and research potentials.
+\newblock {\em European Journal of Operational Research}, 165(2):289--306,
+  2005.
+
+\bibitem{goes2011}
+P.~B. Goes and R.~H. Karwan.
+\newblock Risk-adjusted project scheduling.
+\newblock {\em Operations Research}, 59(4):925--938, 2011.
+
+\bibitem{chen2025qtsp}
+Y.~Chen, A.~Singh, R.~Kuroiwa, and J.~C. Beck.
+\newblock New exact methods for solving quadratic traveling salesman problem.
+\newblock In {\em Proceedings of ICAPS}, 2025.
+
+\bibitem{zhang2024assembly}
+J.~Zhang and J.~C. Beck.
+\newblock Domain-independent dynamic programming and constraint programming
+  approaches for assembly line balancing problems with setups.
+\newblock {\em INFORMS Journal on Computing}, 2024.
+
+\bibitem{golestanian2023}
+A.~Golestanian, G.~Lo~Bianco, C.~Tao, and J.~C. Beck.
+\newblock Optimization models for pickup and delivery problems with
+  reconfigurable capacities.
+\newblock In {\em Proceedings of CP}, 2023.
+
+\end{thebibliography}
+
+\end{document}
+

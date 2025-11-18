@@ -1,6 +1,6 @@
 # KORef: KO-plan Refinement using DIDP
 
-This implementation solves the KO-plan Refinement (KORef) problem using the DIDP (Dynamic Integer Decision Programming) framework.
+This implementation solves the KO-plan Refinement (KORef) problem using the DIDP (Domain-Independent Dynamic Programming) framework.
 
 ## Problem Description
 
@@ -12,15 +12,80 @@ Given a KO-plan `K=(A, ≺, d, p)` where:
 
 The goal is to find a refinement `≺'` of `≺` (i.e., `≺ ⊆ ≺'`) that minimizes the expected makespan of the canonical earliest-start schedule, where makespan accounts for stochastic knock-out events.
 
-## Files
+## Quick Start: Pipeline Overview
 
-- `koref_utils.py`: Core algorithms for computing schedules and expected makespan
-- `read_koref.py`: Instance reader and validation utilities
-- `koref_domain.py`: DIDP model implementation and solver
-- `generate_problems.py`: Unified problem generator (empty/non-empty, all structures, all risk levels)
-- `benchmark_unified.py`: Unified benchmark script for all problem types (default timeout: 30s)
-- `test_single_instance.py`: Quick test script
-- `test_instance.koref`: Example instance file
+### Step 1: Generate Problems
+```bash
+# Generate standard problem suite (small, medium, large, very_large)
+python generate_problems.py
+
+# Generate ultra-large problems (100-200 activities, varying risk levels)
+python generate_ultra_large.py
+```
+
+### Step 2: Run Benchmarks
+```bash
+# Benchmark standard problems (default: 30s timeout per problem)
+python benchmark_unified.py --time-limit 30 --output benchmark_results_30sec
+
+# Benchmark ultra-large problems (recommended: longer timeout)
+python benchmark_ultra_large.py --time-limit 30 --output ultra_large_results
+```
+
+### Step 3: Generate Reports
+```bash
+# Create enhanced markdown report from CSV results
+python create_enhanced_report.py benchmark_results_30sec.csv BENCHMARK_REPORT_ENHANCED.md
+
+# The script automatically generates:
+# - Summary statistics
+# - Optimality breakdown
+# - Detailed results table
+```
+
+### Step 4: Analyze Problem Structure (Optional)
+```bash
+# Analyze which constraints are forced by dominance or risk-ratio heuristics
+python detect_forced_constraints.py problems/empty/ultra_large_ultra_risky/ultra_118_high_01.yaml
+
+# Analyze entire directory
+python detect_forced_constraints.py problems/empty/ultra_large_ultra_risky/
+```
+
+## Main Pipeline Files
+
+### Core Components
+- **`koref_utils.py`**: Core algorithms for computing schedules and expected makespan
+- **`read_koref.py`**: Problem reader and validation utilities
+- **`koref_domain.py`**: DIDP model implementation and solver
+
+### Problem Generation
+- **`generate_problems.py`**: Generate standard problem suite
+  - Sizes: small (3-5), medium (6-10), large (11-15), very_large (50-100)
+  - Types: empty precedence, non-empty (chain, parallel, mixed, DAG)
+  - Risk levels: high, medium, low
+  
+- **`generate_ultra_large.py`**: Generate ultra-large problems
+  - Sizes: 100-200 activities
+  - Empty precedence only
+  - Risk levels: high (p/d ∈ [0.7,1.0]), medium (p/d ∈ [0.3,0.5]), low (p/d ∈ [0.05,0.15])
+
+### Benchmarking
+- **`benchmark_unified.py`**: Benchmark all standard problems
+  - Default timeout: 30 seconds per problem
+  - Outputs CSV with detailed results
+  - Tracks optimality status (proven optimal vs. timeout)
+
+- **`benchmark_ultra_large.py`**: Benchmark ultra-large problems
+  - Specialized for very large instances
+  - Longer recommended timeout (60-300s)
+
+### Analysis & Reporting
+- **`create_enhanced_report.py`**: Generate markdown reports from CSV results
+- **`detect_forced_constraints.py`**: Analyze problem structure
+  - Detects dominance relationships (provably forced constraints)
+  - Identifies risk-ratio heuristic suggestions
+  - Estimates search space reduction
 
 ## Problem Structure
 
@@ -28,64 +93,81 @@ Problems are organized in the following directory structure:
 
 ```
 problems/
-├── empty/              # Problems with empty initial precedence constraints
-│   ├── small/          # 3-5 activities (all files directly here)
-│   ├── medium/         # 6-10 activities (all files directly here)
-│   └── large/          # 11-15 activities (all files directly here)
-└── non_empty/          # Problems with existing precedence constraints
-    ├── small/          # 3-5 activities
-    │   ├── chain/      # Chain structures
-    │   ├── parallel/   # Parallel structures
-    │   ├── mixed/      # Mixed structures
-    │   └── dag/        # DAG structures
-    ├── medium/         # 6-10 activities
+├── empty/                     # Problems with empty initial precedence
+│   ├── small/                 # 3-5 activities
+│   ├── medium/                # 6-10 activities
+│   ├── large/                 # 11-15 activities
+│   ├── very_large/            # 50-100 activities
+│   └── ultra_large_ultra_risky/  # 100-200 activities (high/medium/low risk)
+└── non_empty/                 # Problems with existing precedence
+    ├── small/                 # 3-5 activities
     │   ├── chain/
     │   ├── parallel/
     │   ├── mixed/
     │   └── dag/
-    └── large/          # 11-15 activities
+    ├── medium/                # 6-10 activities
+    │   ├── chain/
+    │   ├── parallel/
+    │   ├── mixed/
+    │   └── dag/
+    ├── large/                 # 11-15 activities
+    │   ├── chain/
+    │   ├── parallel/
+    │   ├── mixed/
+    │   └── dag/
+    └── very_large/            # 50-100 activities
         ├── chain/
         ├── parallel/
         ├── mixed/
         └── dag/
 ```
 
-Each problem file is in YAML format and includes:
-- Activity definitions (id, name, duration, ko_probability)
-- Precedence constraints (list of [predecessor, successor] pairs)
-- Metadata (category, difficulty, structure type)
+## YAML Problem Format
 
-## Instance Format
+Each problem file is in YAML format:
 
+```yaml
+name: problem_name
+n: 5
+activities:
+  - id: 0
+    duration: 2.5
+    ko_probability: 0.1
+  - id: 1
+    duration: 3.0
+    ko_probability: 0.2
+  # ... more activities
+precedence:
+  - [0, 1]  # activity 0 must precede activity 1
+  - [1, 2]
+  # ... more constraints
+metadata:
+  size: small
+  constraint_type: empty
+  risk_level: high
+  original_expected_makespan: 8.456
 ```
-n
-duration_0 probability_0
-duration_1 probability_1
-...
-duration_{n-1} probability_{n-1}
-m
-a_0 b_0
-a_1 b_1
-...
-a_{m-1} b_{m-1}
-```
 
-Where:
-- `n` is the number of activities (numbered 0 to n-1)
-- Each activity has a duration (float) and KO probability (float in [0,1])
-- `m` is the number of precedence constraints
-- Each constraint `a b` means activity `a` must precede activity `b`
+## Documentation Files
 
-## Usage
+- **`explain.md`**: Detailed explanation of KORef problem, makespan computation, DIDP formulation, and knockout semantics
+- **`DIDP_TUTORIAL.md`**: Tutorial on DIDP formulation and solution approach for KORef
+- **`proof_of_complexity.md`**: NP-hardness proof for the KORef decision problem
+- **`runtime_discussion.md`**: Analysis of factors affecting problem difficulty and runtime
+- **`constraint_analysis.md`**: Discussion of forced constraints and search space reduction
+- **`main_results.md`**: Summary of benchmark results and key findings
+- **`koref_icaps.tex`**: ICAPS 2026 submission draft (LaTeX)
 
-### Prerequisites
+## Prerequisites
 
-Install the DIDP Python package (`didppy`):
+Install the DIDP Python package:
 ```bash
-pip install didppy
+pip install didppy pyyaml
 ```
 
-### Running the Solver
+## Advanced Usage
+
+### Running the Solver Directly
 
 ```bash
 python koref_domain.py <instance_file> [options]
@@ -95,54 +177,42 @@ Options:
 - `--time-out`: Time limit in seconds (default: 1800)
 - `--history`: History file for search progress (default: history.csv)
 - `--config`: Solver configuration (default: Optimal)
-  - `Optimal` or `EXHAUSTIVE`: Exhaustively explores all terminal states, computes exact expected makespan for each, returns optimal (guaranteed)
-  - `FR` or `ForwardRecursion`: Uses DIDP ForwardRecursion (may not explore all states)
-  - Other DIDP solvers: `CABS`, `LNBS`, etc. (heuristic, not guaranteed optimal)
+  - `Optimal` or `EXHAUSTIVE`: DFBB with exhaustive search (guaranteed optimal)
+  - `FR` or `ForwardRecursion`: Forward recursion (may not explore all states)
+  - Other DIDP solvers: `CABS`, `LNBS`, `DFBB`, `CBFS`, etc.
 - `--seed`: Random seed (default: 2023)
 - `--threads`: Number of threads (default: 1)
-- `--initial-beam-size`: Initial beam size (default: 1)
-- `--parallel-type`: Parallelization type (default: 0)
 
-### Example
-
+Example:
 ```bash
-# Find optimal solution with exact makespan computation
-python koref_domain.py problems/non_empty/small/chain/chain_3.yaml --config Optimal --time-out 60
-
-# Use heuristic solver (faster but not guaranteed optimal)
-python koref_domain.py problems/non_empty/small/chain/chain_3.yaml --config CABS --time-out 60
+# Find optimal solution with 60s timeout
+python koref_domain.py problems/empty/small/empty_4_high_01.yaml --config Optimal --time-out 60
 ```
 
-### Benchmarking
-
-Run benchmarks on all problems:
+### Custom Problem Generation
 
 ```bash
-# Benchmark all problems (empty and non-empty) with default 30s timeout
-python benchmark_unified.py
+# Generate specific problem types
+python generate_problems.py \
+  --constraint-types empty non_empty \
+  --structures chain dag \
+  --risk-levels high medium \
+  --instances 10 \
+  --seed 42
 
-# Benchmark with custom timeout
-python benchmark_unified.py --time-limit 60 --output benchmark_results
+# Generate ultra-large with custom parameters
+python generate_ultra_large.py --base-seed 2024 --num-instances 20
 ```
 
-### Problem Generation
-
-Generate problems with different characteristics:
+### Custom Benchmarking
 
 ```bash
-# Generate all problem types (empty/non-empty, all structures, all risk levels)
-python generate_problems.py
+# Benchmark with longer timeout
+python benchmark_unified.py --time-limit 120 --output my_results
 
-# Generate specific types only
-python generate_problems.py --constraint-types empty non_empty --structures chain dag --risk-levels high medium --instances 5
+# Benchmark specific directory
+python benchmark_ultra_large.py --time-limit 300 --output ultra_results
 ```
-
-Results are saved as CSV and Markdown files with detailed tables showing:
-- Original makespan (before refinement)
-- Refined makespan (after refinement)
-- Improvement percentage
-- Runtime
-- Optimality status
 
 ## Implementation Notes
 
@@ -158,54 +228,65 @@ For each unresolved pair `{a, b}`, we can add either:
 - `a < b` (activity a precedes b)
 - `b < a` (activity b precedes a)
 
-Transitions check that adding the constraint doesn't immediately create a cycle (based on initial precedence).
+### Search Strategy
 
-### Optimal Search with Exact Makespan Computation
+The implementation uses **DFBB (Depth-First Branch & Bound)** for optimal search:
+1. Explores the state space depth-first (memory efficient)
+2. For each terminal state, extracts the precedence relation
+3. Computes exact expected makespan using bucket-based algorithm
+4. Tracks the best solution found
+5. Continues until all states are explored or timeout
 
-The implementation supports **optimal search** with **exact expected makespan computation**:
-
-1. **Exhaustive Search Mode** (`--config Optimal`):
-   - Explores all terminal states using BreadthFirstSearch
-   - For each terminal state, computes the **exact expected makespan** using the bucket-based algorithm
-   - Returns the refinement with minimum expected makespan
-   - **Guarantees optimality** (exhaustive exploration)
-
-2. **Expected Makespan Computation**:
-   - Uses the exact algorithm from the specification:
-     1. Compute canonical earliest-start schedule from precedence relation
-     2. Compute abort times for each activity (max finish time of overlapping activities)
-     3. Group activities by abort time into buckets
-     4. Compute survival probabilities: Q_j = ∏(1-p(a)) for a in bucket j
-     5. Compute cumulative probabilities: P_j = ∏Q_i for i=1..j
-     6. Apply formula: E[M] = Σ(t_j * P_{j-1} * (1-Q_j)) + T * P_k
-
-3. **Terminal State Evaluation**:
-   - When a terminal state is reached (all pairs resolved), the precedence relation is extracted
-   - The exact expected makespan is computed using the algorithm above
-   - All terminal states are evaluated to find the optimal one
-
-This approach ensures **optimal solutions** with **exact makespan computation** as specified in the LaTeX document.
+**Note**: Due to the non-monotonic nature of the objective function (adding constraints can either increase or decrease makespan), traditional bound-based pruning is not suitable for guaranteeing optimality. The solver performs exhaustive search on smaller instances and times out on larger ones.
 
 ### Expected Makespan Algorithm
 
-The implementation uses the bucket-based algorithm from the specification:
+The implementation uses the bucket-based algorithm:
 1. Compute earliest-start schedule from precedence relation
-2. Compute abort times for each activity (max finish time of overlapping activities)
+2. Compute abort times for each activity (considering overlapping activities)
 3. Group activities by abort time into buckets
-4. Compute survival probabilities for each bucket
-5. Compute expected makespan using the formula:
-   ```
-   E[M] = Σ(t_j * P_{j-1} * (1-Q_j)) + T * P_k
-   ```
+4. Compute survival probabilities: Q_j = ∏(1-p(a)) for activities in bucket j
+5. Compute cumulative probabilities: P_j = ∏Q_i for i=1..j
+6. Apply formula: E[M] = Σ(t_j * P_{j-1} * (1-Q_j)) + T * P_k
 
-## Validation
+**Knockout Semantics**: Activities execute fully before knockout evaluation. When an activity knocks out, all concurrently running activities finish first, then the process stops.
 
-The solution is validated by:
-1. Checking that refined precedence extends original precedence
-2. Checking acyclicity
-3. Recomputing expected makespan and comparing with reported value
+## Complete Workflow Example
+
+```bash
+# 1. Generate all problems
+python generate_problems.py
+python generate_ultra_large.py
+
+# 2. Run benchmarks
+python benchmark_unified.py --time-limit 30 --output standard_results
+python benchmark_ultra_large.py --time-limit 60 --output ultra_results
+
+# 3. Generate reports
+python create_enhanced_report.py standard_results.csv STANDARD_REPORT.md
+
+# 4. Analyze problem structure
+python detect_forced_constraints.py problems/empty/ultra_large_ultra_risky/
+
+# 5. Review results
+# - Check markdown reports (*.md)
+# - Review CSV files (*.csv)
+# - Analyze constraint structure
+```
+
+## Key Results
+
+- **Small/Medium problems**: Solver finds proven optimal solutions within seconds
+- **Large problems**: Most instances solved optimally within 30s timeout
+- **Very large problems**: Timeout common, but good solutions found
+- **Ultra-large problems**: Primarily exploratory, demonstrate scalability limits
+- **High-risk problems**: Show largest improvements from refinement (up to 60%+)
+- **Empty precedence**: Often benefits more from refinement than constrained problems
+
+See `main_results.md` for detailed analysis of benchmark results.
 
 ## References
 
-- DIDP Models Repository: https://github.com/Kurorororo/didp-models.git
-- Formal specification: See LaTeX specification provided
+- DIDP Framework: https://didp.ai/
+- DIDPPy Documentation: https://didppy.readthedocs.io/
+- DIDP Models Repository: https://github.com/Kurorororo/didp-models
