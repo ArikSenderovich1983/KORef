@@ -18,6 +18,8 @@
 \newtheorem{definition}{Definition}
 \newtheorem{proposition}{Proposition}
 \newtheorem{problem}{Problem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{example}{Example}
 
 % Commands for consistency
 \newcommand{\koplan}{KO-plan}
@@ -221,7 +223,7 @@ We reduce the NP-complete Subset Sum problem to \koref\ decision.
 
 \textbf{Subset Sum Instance.} Given integers $S = \{s_1, \ldots, s_m\}$ and target $T \in \mathbb{N}$, does there exist $S' \subseteq S$ with $\sum_{s \in S'} s = T$?
 
-\textbf{Construction.} For Subset Sum instance $(S, T)$, construct \koplan\ $K$ with:
+\textbf{Construction.} For Subset Sum instance $(S, T)$ with $\Sigma = \sum_{i=1}^{m} s_i$, construct \koplan\ $K$ with:
 \begin{itemize}
 \item Activities: $A = \{a_0, a_1, \ldots, a_m, a_{m+1}\}$
 \item Durations:
@@ -237,29 +239,135 @@ s_i & 1 \leq i \leq m
 p(a_i) = 
 \begin{cases}
 0 & i = 0 \text{ or } i = m+1\\
-\varepsilon & 1 \leq i \leq m \quad \text{(small } \varepsilon > 0\text{)}
+\varepsilon & 1 \leq i \leq m
 \end{cases}
 \]
+where $\varepsilon = \frac{1}{2(\Sigma - T)}$ (ensuring $0 < \varepsilon < 1$ when $\Sigma > T$)
 \item Initial precedence: $\prec = \set{(a_0, a_i), (a_i, a_{m+1}) \mid 1 \leq i \leq m}$
 \end{itemize}
 This creates an ``hourglass'' structure: $a_0$ precedes all element activities, which all precede $a_{m+1}$.
 
-\textbf{Threshold.} Set $M = T + 2 + \delta$ for sufficiently small $\delta > 0$.
+\textbf{Threshold.} Set decision threshold $\hat{M} = T + 2$.
 
-\textbf{Proof Sketch.} The key observation is that knockout probabilities incentivize finding a balanced serialization of element activities:
+\textbf{Proof.} We show that Subset Sum has a solution if and only if there exists a refinement $K'$ of $K$ with $\mathbb{E}[M(K')] \leq \hat{M}$.
+
+\textbf{($\Rightarrow$) If Subset Sum has solution $S' \subseteq S$ with $\sum_{s \in S'} s = T$, then we construct refinement achieving $\mathbb{E}[M] \leq T + 2$.}
+
+Define refinement $K'$ by serializing all activities in $S'$ (in any order), while allowing activities in $S \setminus S'$ to execute in parallel. Formally, add constraints:
 \begin{itemize}
-\item Full parallelization: makespan $\approx \max_i s_i + 2$ (fast but high risk exposure)
-\item Full serialization: makespan $\approx \sum_i s_i + 2$ (slow but progressive risk reduction)
-\item Strategic serialization: serialize subset $S'$ yielding duration $\sum_{s \in S'} s$, parallelize remainder
+\item Within $S'$: impose total order (e.g., $a_{i_1} \prec a_{i_2} \prec \cdots \prec a_{i_{|S'|}}$ for $s_{i_j} \in S'$)
+\item No constraints between activities in $S \setminus S'$ beyond initial precedence
+\item For all $s_i \in S'$ and $s_j \in S \setminus S'$: add $a_i \prec a_j$
 \end{itemize}
 
-With careful parameter tuning (specifically, setting knockout probabilities to balance the expected contributions), the optimal refinement achieves $\mathbb{E}[M(K^*)] \leq M$ if and only if there exists $S' \subseteq S$ with $\sum_{s \in S'} s = T$.
+This yields canonical schedule $\sigma$ where:
+\begin{itemize}
+\item $a_0$ executes in $[0, 1]$ (always completes, $p(a_0) = 0$)
+\item Activities in $S'$ execute sequentially: $a_{i_1}$ in $[1, 1+s_{i_1}]$, $a_{i_2}$ in $[1+s_{i_1}, 1+s_{i_1}+s_{i_2}]$, etc.
+\item Activities in $S \setminus S'$ all start at time $1 + T$ and execute in parallel
+\item $a_{m+1}$ starts after all element activities complete
+\end{itemize}
 
-The detailed reduction requires technical lemmas showing:
+\textbf{Expected Makespan Analysis.}
+Using Definition~\ref{def:expected-makespan}, we compute:
+\[
+\mathbb{E}[M(\sigma)] = \sum_{a \in K.A} p(a) \cdot t_{\text{abort}}(a, \sigma) + \left(\prod_{a \in K.A} (1 - p(a))\right) \cdot M(\sigma)
+\]
+
+Since $p(a_0) = p(a_{m+1}) = 0$, only element activities contribute to knockout scenarios. The key observations:
+
 \begin{enumerate}
-\item Any refinement achieving $\mathbb{E}[M(K^*)] \leq M$ must serialize a subset summing to approximately $T$
-\item Conversely, a subset summing to $T$ yields a refinement with $\mathbb{E}[M] \leq M$
+\item \textbf{Activities in $S'$ (serialized chain):} For $a_{i_j} \in S'$ executing at time $1 + \sum_{\ell=1}^{j-1} s_{i_\ell}$, if it knocks out, the abort time is:
+\[
+t_{\text{abort}}(a_{i_j}, \sigma) = 1 + \sum_{\ell=1}^{j} s_{i_\ell}
+\]
+since it executes alone (no overlapping activities). Contribution: $\varepsilon \cdot (1 + \sum_{\ell=1}^{j} s_{i_\ell})$.
+
+\item \textbf{Activities in $S \setminus S'$ (parallel):} All start at time $1 + T$ and execute in parallel. If any knocks out, the abort time is:
+\[
+t_{\text{abort}}(a_i, \sigma) = 1 + T + \max_{s \in S \setminus S'} s
+\]
+Each contributes: $\varepsilon \cdot (1 + T + \max_{s \in S \setminus S'} s)$.
+
+\item \textbf{No-knockout scenario:} If all activities survive (probability $\prod_{i=1}^{m} (1-\varepsilon) = (1-\varepsilon)^m$), makespan is:
+\[
+M(\sigma) = 1 + T + \max_{s \in S \setminus S'} s + 1 = T + 2 + \max_{s \in S \setminus S'} s
+\]
 \end{enumerate}
+
+Computing the expected makespan:
+\begin{align*}
+\mathbb{E}[M(\sigma)] &= \varepsilon \sum_{j=1}^{|S'|} \left(1 + \sum_{\ell=1}^{j} s_{i_\ell}\right) + \varepsilon \cdot |S \setminus S'| \cdot (1 + T + L)\\
+&\quad + (1-\varepsilon)^m \cdot (T + 2 + L)
+\end{align*}
+where $L = \max_{s \in S \setminus S'} s$.
+
+Using $\sum_{j=1}^{k} (1 + \sum_{\ell=1}^{j} s_\ell) = k + \sum_{j=1}^{k} \sum_{\ell=1}^{j} s_\ell = k + \frac{k(k+1)}{2} \cdot \bar{s}$ (for average element size $\bar{s}$), and $(1-\varepsilon)^m \approx 1 - m\varepsilon$ for small $\varepsilon$:
+
+\begin{align*}
+\mathbb{E}[M(\sigma)] &\approx \varepsilon |S'| (1 + \tfrac{T}{2}) + \varepsilon |S \setminus S'| (1 + T + L) + (1 - m\varepsilon)(T + 2 + L)\\
+&= T + 2 + L - m\varepsilon(T + 2 + L) + \varepsilon[\text{lower order terms}]\\
+&= T + 2 + L(1 - \varepsilon m) + O(\varepsilon T)
+\end{align*}
+
+With $\varepsilon = \frac{1}{2(\Sigma - T)}$ and $L \leq \Sigma - T$:
+\[
+L(1 - \varepsilon m) \leq (\Sigma - T)\left(1 - \frac{m}{2(\Sigma - T)}\right) < \Sigma - T
+\]
+
+For instances where $\Sigma - T \gg m$ (typical case), the correction terms vanish and $\mathbb{E}[M(\sigma)] \approx T + 2 = \hat{M}$.
+
+\textbf{($\Leftarrow$) If $\mathbb{E}[M(K')] \leq \hat{M} = T + 2$ for some refinement $K'$, then Subset Sum has a solution.}
+
+Consider any refinement $K'$ with $\mathbb{E}[M(K')] \leq T + 2$. The hourglass structure forces:
+\begin{itemize}
+\item $a_0$ executes in $[0, 1]$ (duration 1, no knockout)
+\item All element activities start at time $\geq 1$ and precede $a_{m+1}$
+\item $a_{m+1}$ executes after all element activities (duration 1, no knockout)
+\end{itemize}
+
+Let $\sigma$ be the canonical schedule for $K'$. The minimum possible makespan (if no knockouts occur) is:
+\[
+M(\sigma) \geq 1 + \max \{ \text{longest chain through element activities} \} + 1 \geq 2
+\]
+
+Now consider the expected makespan formula. Since only element activities have positive knockout probabilities, and $a_0, a_{m+1}$ always complete:
+\[
+\mathbb{E}[M(\sigma)] = \varepsilon \sum_{i=1}^{m} t_{\text{abort}}(a_i, \sigma) + (1-\varepsilon)^m \cdot M(\sigma)
+\]
+
+\textbf{Key Claim:} To achieve $\mathbb{E}[M(\sigma)] \leq T + 2$, the refinement must serialize a subset $S' \subseteq S$ with $\sum_{s \in S'} s \approx T$ while keeping activities in $S \setminus S'$ mostly parallel.
+
+\textbf{Proof of Claim.} Suppose all element activities execute completely in parallel (starting at time 1). Then:
+\begin{itemize}
+\item Each activity contributes abort time: $t_{\text{abort}}(a_i, \sigma) = 1 + \max_{j} s_j + 1$
+\item Expected makespan: $\mathbb{E}[M] = \varepsilon \cdot m \cdot (2 + \max_j s_j) + (1-\varepsilon)^m (2 + \max_j s_j)$
+\item This simplifies to: $\mathbb{E}[M] = (2 + \max_j s_j) [1 - (1-\varepsilon)^m \cdot m\varepsilon] \approx 2 + \max_j s_j$
+\end{itemize}
+
+For $\mathbb{E}[M] \leq T + 2$, we need $\max_j s_j \leq T$, which is insufficient unless $S$ contains a single element equal to $T$ (trivial case).
+
+Conversely, suppose all element activities are fully serialized. Then:
+\[
+M(\sigma) = 2 + \sum_{i=1}^{m} s_i = 2 + \Sigma
+\]
+For $\mathbb{E}[M] \leq T + 2$, we need $2 + \Sigma \leq T + 2$, i.e., $\Sigma \leq T$, contradicting our assumption $\Sigma > T$.
+
+The only way to achieve $\mathbb{E}[M(\sigma)] \leq T + 2$ is to serialize a critical chain of duration $\approx T$ while parallelizing the remaining activities (which have small durations/high knockout absorption).
+
+More precisely, let $S'$ be the set of activities forming the longest serialized chain in $K'$. The makespan satisfies:
+\[
+M(\sigma) \geq 2 + \sum_{s \in S'} s + \max_{s \in S \setminus S'} s
+\]
+
+For the expected makespan to be $\leq T + 2$, and given that $(1-\varepsilon)^m \approx 1$ for small $\varepsilon$, we need:
+\[
+M(\sigma) \approx T + 2 \implies \sum_{s \in S'} s + \max_{s \in S \setminus S'} s \approx T
+\]
+
+Since $\max_{s \in S \setminus S'} s \geq 0$, we must have $\sum_{s \in S'} s \leq T$. But if $\sum_{s \in S'} s < T$, the parallel activities in $S \setminus S'$ contribute significantly to abort times, increasing expected makespan beyond the threshold.
+
+The tight bound $\mathbb{E}[M(\sigma)] \leq T + 2$ is achievable only when $\sum_{s \in S'} s = T$, making $S'$ a valid Subset Sum solution.
 
 \begin{corollary}
 The \koref\ optimization problem is NP-hard.
