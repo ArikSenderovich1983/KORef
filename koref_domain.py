@@ -152,15 +152,12 @@ def create_model(n, durations, probabilities, precedence):
     # but costs are evaluated after reaching terminal states.
     # 
     # For minimization: cost=None means cost is 0, actual cost computed post-search
+    # Only complete refinements are terminal (all pairs resolved)
     model.add_base_case([unresolved.is_empty()], cost=None)
-    # Add base case for partial refinements (states with at least one constraint added)
-    # Note: This allows stopping early without resolving all pairs
-    try:
-        model.add_base_case([added_constraints.len() > 0], cost=None)
-    except Exception as e:
-        # If DIDP doesn't support multiple base cases, we'll only evaluate complete refinements
-        # Partial refinements would need a different approach (e.g., no-op transitions)
-        print(f"Note: Multiple base cases not supported, only complete refinements will be evaluated: {e}")
+    
+    # Note: We removed the partial refinement base case (added_constraints.len() > 0)
+    # because it caused premature termination - the solver would stop after adding
+    # just one constraint instead of exploring the full state space.
     
     # Transitions: for each unresolved unordered pair {a,b}, we can add either a<b or b<a
     # When we add a constraint, we remove the canonical pair index from unresolved
@@ -389,14 +386,11 @@ def solve(
     """
     # For optimal exhaustive search
     if solver_name == "Optimal" or solver_name == "EXHAUSTIVE":
-        # Use DFBB (Depth-First Branch & Bound) for optimal search
-        # DFBB uses branch & bound techniques for efficient exploration
-        # Note: Since costs are computed at terminal states (expected makespan requires
-        # full precedence relation), DFBB will explore all terminal states but uses
-        # depth-first order which is more memory efficient than breadth-first
-        print("Using DFBB (Depth-First Branch & Bound) for optimal search...")
-        print("Note: Costs computed at terminal states, so DFBB explores all refinements")
-        print("      but uses efficient depth-first exploration order.")
+        # Use BreadthFirstSearch for complete exhaustive exploration
+        # BFS explores all states level by level, guaranteeing we find all complete refinements
+        print("Using BreadthFirstSearch (BrFS) for complete optimal search...")
+        print("Note: BrFS explores ALL complete refinements (all unresolved pairs decided)")
+        print("      This guarantees finding the global optimum.")
         
         # First evaluate original precedence as baseline
         original_makespan = compute_terminal_cost(initial_precedence, n, durations, probabilities)
@@ -407,15 +401,15 @@ def solve(
         best_transitions = None
         terminal_count = 1
         
-        solver = dp.DFBB(model, time_limit=time_limit, quiet=False)
+        solver = dp.BreadthFirstSearch(model, time_limit=time_limit, quiet=False)
         
-        # DFBB.search() returns a single solution, but we need all terminal states
-        # Use search_next() to explore all solutions
+        # BrFS.search_next() explores all solutions
         import time
         search_start_time = time.time()
         is_terminated = False
         while not is_terminated:
             if time_limit and (time.time() - search_start_time) > time_limit:
+                print(f"\nTimeout reached after {time.time() - search_start_time:.1f}s")
                 break
             
             solution, is_terminated = solver.search_next()
@@ -436,17 +430,19 @@ def solve(
                     )
                     
                     terminal_count += 1
-                    if terminal_count % 10 == 0:
+                    if terminal_count % 100 == 0:
                         print(f"  Evaluated {terminal_count} terminal states, current best: {best_cost:.6f}")
                     
-                    if expected_makespan <= best_cost:
+                    if expected_makespan < best_cost:
                         best_cost = expected_makespan
                         best_precedence = refined_precedence
                         best_transitions = solution.transitions
                         improvement = original_makespan - expected_makespan
-                        print(f"  New best: expected_makespan = {best_cost:.6f} (improvement: {improvement:.6f})")
+                        print(f"  *** New best: makespan = {best_cost:.6f} (improvement: {improvement:.6f}, {100*improvement/original_makespan:.1f}%) ***")
         
-        print(f"\nExplored {terminal_count} terminal states using DFBB")
+        print(f"\nExplored {terminal_count} complete refinements using BrFS")
+        is_optimal = is_terminated  # Only optimal if we finished exploring all states
+        is_timeout = not is_terminated
         
         if best_precedence is None:
             return None, None, None, False, True
@@ -455,8 +451,8 @@ def solve(
             best_precedence,
             best_cost,
             None,
-            True,  # Optimal (exhaustive exploration)
-            False,
+            is_optimal,  # True only if exhaustive search completed
+            is_timeout,
         )
     
     # For optimal search, we need to explore all terminal states

@@ -343,32 +343,48 @@ Expected makespan computation (Line 5) requires:
 
 This complexity motivates terminal-only cost evaluation rather than incremental costs.
 
-\subsection{Solver: DFBB}
+\subsection{Solver: Breadth-First Search}
 
-We use DFBB (Depth-First Branch \& Bound) from DIDP, which:
+We use BreadthFirstSearch (BrFS) from DIDP for complete exhaustive exploration, which:
 \begin{itemize}
-\item Exhaustively explores all terminal states
-\item Uses depth-first order (memory efficient)
+\item Exhaustively explores all complete refinements (terminal states)
+\item Explores states level-by-level, guaranteeing completeness
 \item Guarantees optimal solution for finite state spaces
 \end{itemize}
 
+\textbf{Critical Implementation Note.} An initial implementation used two base cases:
+\begin{enumerate}
+\item $U = \emptyset$ (complete refinements)
+\item $|C| > 0$ (partial refinements with at least one constraint)
+\end{enumerate}
+
+The second base case caused \emph{premature termination}: the solver would stop after adding a single constraint, exploring only 3 terminal states instead of $2^{|U|}$ complete refinements. This prevented finding optimal solutions that require multiple constraints.
+
+\textbf{Corrected Implementation.} We use only the complete refinement base case:
+\[
+\text{Terminal if } U = \emptyset
+\]
+
+This ensures the solver explores all $2^k$ possible ways to decide the $k$ initially unresolved pairs.
+
 \begin{algorithm}[H]
-\caption{DFBB for \koref}
-\label{alg:dfbb}
+\caption{BrFS for \koref}
+\label{alg:brfs}
 \begin{algorithmic}[1]
 \State $K_{\text{best}} \gets K$ \Comment{Initialize with original}
 \State $M_{\text{best}} \gets \mathbb{E}[M(K)]$
-\State solver $\gets$ DFBB(model, time\_limit)
+\State solver $\gets$ BreadthFirstSearch(model, time\_limit)
 \Repeat
     \State $(K', \textit{terminated}) \gets$ solver.search\_next()
     \If{$K'$ is feasible}
         \State $M' \gets \mathbb{E}[M(K')]$
         \If{$M' < M_{\text{best}}$}
             \State $K_{\text{best}} \gets K'$, $M_{\text{best}} \gets M'$
+            \State Print improvement: $M_{\text{best}} - M'$
         \EndIf
     \EndIf
 \Until{\textit{terminated} or time limit}
-\State \Return $K_{\text{best}}$
+\State \Return $K_{\text{best}}$, optimal = terminated
 \end{algorithmic}
 \end{algorithm}
 
@@ -405,15 +421,49 @@ Here, adding constraints \emph{increased} makespan: serialization reduces risk e
 \item Exhaustive terminal exploration necessary for optimality
 \end{itemize}
 
-Despite this, DFBB remains effective for moderate $n$ because:
+Despite this, BrFS remains effective for moderate $n$ because:
 \begin{enumerate}
 \item State space size $\approx 2^{n(n-1)/2}$ manageable for $n \leq 15$
 \item Cycle detection rejects invalid branches early
-\item Depth-first order uses minimal memory
+\item Level-by-level exploration ensures completeness
 \item Baseline evaluation (original $K$) provides initial incumbent
 \end{enumerate}
 
 For larger instances, heuristic DIDP solvers (CABS, LNBS) sacrifice optimality for scalability.
+
+\subsection{Cascading Constraint Phenomenon}
+
+A subtle aspect of \koref\ is that benefits may only emerge when considering \emph{multiple constraints together}. We illustrate with a 5-activity example that demonstrates this ``cascading'' effect.
+
+\begin{example}[Cascading Constraints]
+\label{ex:cascading}
+Consider $A = \{a_0, a_1, a_2, a_3, a_4\}$ with:
+\begin{center}
+\begin{tabular}{c|ccccc}
+Activity & $a_0$ & $a_1$ & $a_2$ & $a_3$ & $a_4$ \\
+\hline
+Duration & 1.0 & 1.5 & 2.5 & 4.0 & 7.0 \\
+KO Prob & 0.90 & 0.80 & 0.70 & 0.60 & 0.50 \\
+$p/d$ Ratio & 0.90 & 0.53 & 0.28 & 0.15 & 0.071
+\end{tabular}
+\end{center}
+
+\textbf{All-Parallel Schedule.} $\mathbb{E}[M] = 7.0$ (determined by longest activity $a_4$).
+
+\textbf{Partial Chain: Only $a_0 \prec a_1$.} Adding just this constraint yields $\mathbb{E}[M] = 7.0$ --- no improvement! The high knockout probability of $a_0$ is ``wasted'' because $a_4$ still runs concurrently.
+
+\textbf{Full Chain: $a_0 \prec a_1 \prec a_2 \prec a_3 \prec a_4$.} Now $\mathbb{E}[M] = 1.24$ --- an 82\% reduction!
+
+The dramatic improvement emerges because:
+\begin{itemize}
+\item $a_0$ knocks out with prob 0.9, saving all future work (14.5 time units)
+\item If $a_0$ survives (0.1), $a_1$ may knock out (0.08), saving remaining work
+\item Survival probabilities compound: $(0.1)(0.2)(0.3)(0.4)(0.5) = 0.0012$
+\item Later activities contribute minimally to expected makespan
+\end{itemize}
+
+\textbf{Key Insight.} The optimal solution (full serialization by decreasing $p/d$ ratio) is only apparent when considering all constraints together. Partial orderings show no benefit, illustrating why complete refinement exploration is essential.
+\end{example}
 
 \section{Experimental Evaluation}
 

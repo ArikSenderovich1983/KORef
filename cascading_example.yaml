@@ -1,0 +1,25 @@
+name: cascading_5_activities
+n: 5
+activities:
+  - id: 0
+    duration: 1.0
+    ko_probability: 0.9
+  - id: 1
+    duration: 1.5
+    ko_probability: 0.8
+  - id: 2
+    duration: 2.5
+    ko_probability: 0.7
+  - id: 3
+    duration: 4.0
+    ko_probability: 0.6
+  - id: 4
+    duration: 7.0
+    ko_probability: 0.5
+precedence: []
+metadata:
+  size: small
+  constraint_type: empty
+  risk_level: high
+  original_expected_makespan: 7.0
+  description: "5-activity cascading problem. Risk-to-duration ratios: a_0=0.90, a_1=0.53, a_2=0.28, a_3=0.15, a_4=0.071. Optimal should order by decreasing p/d ratio."
